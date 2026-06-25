@@ -6,7 +6,14 @@
   <title>VichirDaily</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="mode-pending">
+  <div class="ambient-background" aria-hidden="true">
+    <div class="ambient-background-image ambient-background-normal"></div>
+    <div class="ambient-background-image ambient-background-evil"></div>
+  </div>
+
+  <button id="modeSwitchButton" class="mode-switch-button" type="button" hidden>切换模式</button>
+
   <main class="ledger" aria-label="VichirDaily 首页">
     <section class="ledger-page ledger-page-left">
       <header class="title-panel">
@@ -31,15 +38,24 @@
             <dd id="actionPointText">3 / 3</dd>
           </div>
           <div>
-            <dt>勤政</dt>
+            <dt class="stat-label" title="勤政">
+              <img src="assets/icons/icon_diligence.png" alt="" title="勤政">
+              <span class="sr-only">勤政</span>
+            </dt>
             <dd id="diligenceText">0</dd>
           </div>
           <div>
-            <dt>灵视</dt>
+            <dt class="stat-label" title="灵视">
+              <img src="assets/icons/icon_spirit.png" alt="" title="灵视">
+              <span class="sr-only">灵视</span>
+            </dt>
             <dd id="visionText">0</dd>
           </div>
           <div>
-            <dt>金币</dt>
+            <dt class="stat-label" title="财富">
+              <img src="assets/icons/icon_wealth.png" alt="" title="财富">
+              <span class="sr-only">财富</span>
+            </dt>
             <dd id="goldText">0</dd>
           </div>
         </dl>
@@ -60,7 +76,9 @@
       </div>
 
       <footer class="ledger-footer">
-        <button id="historyButton" class="history-button" type="button">历史日志</button>
+        <button id="historyButton" class="history-button ledger-control-button" type="button">历史日志</button>
+        <button id="saveButton" class="ledger-control-button" type="button">保存游戏</button>
+        <button id="clearSaveButton" class="ledger-control-button ledger-control-button-ghost" type="button">清除存档</button>
       </footer>
 
       <section id="historyPanel" class="history-panel" aria-label="历史日志" hidden>
@@ -69,6 +87,34 @@
       </section>
     </section>
   </main>
+
+  <div id="startModal" class="start-modal" role="dialog" aria-modal="true" aria-labelledby="startTitle" hidden>
+    <div class="mode-backdrop"></div>
+    <section class="mode-card">
+      <p class="mode-kicker">VichirDaily</p>
+      <h2 id="startTitle">要从哪里开始？</h2>
+      <div class="mode-options">
+        <button class="mode-option" id="continueButton" type="button">继续游戏</button>
+        <button class="mode-option" id="restartButton" type="button">重新开始</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="modeModal" class="mode-modal" role="dialog" aria-modal="true" aria-labelledby="modeTitle">
+    <div class="mode-backdrop"></div>
+    <section class="mode-card">
+      <p class="mode-kicker">选择化身</p>
+      <h2 id="modeTitle">今天选择什么姿态打工？</h2>
+      <div class="mode-options">
+        <button class="mode-option" type="button" data-mode-choice="normal">
+          <span>普通</span>
+        </button>
+        <button class="mode-option mode-option-evil" type="button" data-mode-choice="evil">
+          <span>邪恶化身</span>
+        </button>
+      </div>
+    </section>
+  </div>
 
   <div id="eventModal" class="event-modal" role="dialog" aria-modal="true" aria-labelledby="eventTitle" hidden>
     <div class="event-backdrop"></div>

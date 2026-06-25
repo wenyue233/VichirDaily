@@ -1,6 +1,17 @@
 const SAVE_KEY = "vichirDailySave";
+const MODE_KEY = "vichirDailyUiMode";
+const SCRIPT_VERSION = "2026.06.25-compat-1";
+const SAVE_VERSION = 2;
 const MAX_ACTION_POINTS = 3;
 const EVENT_DATA_URL = "data/events.json";
+const UI_MODES = {
+  normal: {
+    label: "普通模式",
+  },
+  evil: {
+    label: "邪恶化身模式",
+  },
+};
 
 const defaultState = {
   day: 1,
@@ -32,13 +43,165 @@ const actions = [
   },
 ];
 
-let gameState = loadGame();
+const DEFAULT_EVENT_DATA = {
+  wanderTables: [
+    {
+      id: "wander_normal",
+      type: "normal",
+      title: "普通闲逛",
+      weight: 60,
+      effects: {},
+      fallbackText: "随处走走：宫廷今日平静无事。",
+      events: [
+        {
+          id: "corridor_whisper",
+          title: "长廊低语",
+          body: "你在长廊听见几句未成形的传闻。",
+          logText: "随处走走：你在长廊听见几句未成形的传闻。",
+          options: [],
+          rewards: [],
+          image: "",
+        },
+        {
+          id: "quiet_courtyard",
+          title: "安静庭院",
+          body: "庭院风沙渐起，今日暂无特别收获。",
+          logText: "随处走走：庭院风沙渐起，今日暂无特别收获。",
+          options: [],
+          rewards: [],
+          image: "",
+        },
+      ],
+    },
+    {
+      id: "wander_vision",
+      type: "vision",
+      title: "灵视浮现",
+      weight: 25,
+      effects: {
+        vision: 1,
+      },
+      fallbackText: "随处走走：你察觉到一丝异样气息，灵视 +1。",
+      events: [
+        {
+          id: "silver_shadow",
+          title: "银色影子",
+          body: "你在帘幕后看见一抹银色影子，很快又消失不见。",
+          logText: "随处走走：你看见一抹银色影子，灵视 +1。",
+          options: [],
+          rewards: ["灵视 +1"],
+          image: "",
+        },
+      ],
+    },
+    {
+      id: "wander_gold",
+      type: "gold",
+      title: "意外收获",
+      weight: 10,
+      effects: {
+        gold: 1,
+      },
+      fallbackText: "随处走走：你捡到一枚遗落的金币，金币 +1。",
+      events: [
+        {
+          id: "lost_coin",
+          title: "遗落金币",
+          body: "一枚金币滚到你的靴边，没人前来认领。",
+          logText: "随处走走：你捡到一枚遗落的金币，金币 +1。",
+          options: [],
+          rewards: ["金币 +1"],
+          image: "",
+        },
+      ],
+    },
+    {
+      id: "wander_special",
+      type: "special",
+      title: "特殊闲逛事件",
+      weight: 5,
+      effects: {},
+      fallbackText: "随处走走：一个特殊事件正在等待补完。",
+      events: [
+        {
+          id: "veiled_guest",
+          title: "蒙面访客",
+          body: "一个蒙面人从柱影后向你点头，随即消失在人群中。",
+          logText: "随处走走：你遇见一名蒙面访客。特殊事件占位。",
+          options: [],
+          rewards: [],
+          image: "",
+        },
+      ],
+    },
+  ],
+  statEvents: [
+    {
+      id: "sultan_reward",
+      title: "苏丹的奖励",
+      body: "占位文本：你的勤政被苏丹看见，一份奖励正在拟定。",
+      logText: "事件触发：【苏丹的奖励】。勤政归零。",
+      trigger: {
+        stat: "diligence",
+        operator: ">=",
+        value: 10,
+        chance: 1,
+      },
+      effects: {
+        diligence: "reset",
+      },
+      options: [],
+      rewards: [],
+      image: "",
+    },
+    {
+      id: "fluffy_promise",
+      title: "毛茸茸之约",
+      body: "占位文本：某个毛茸茸的存在回应了你的灵视。",
+      logText: "事件触发：【毛茸茸之约】。灵视归零。",
+      trigger: {
+        stat: "vision",
+        operator: ">=",
+        value: 3,
+        chance: 1,
+      },
+      effects: {
+        vision: "reset",
+      },
+      options: [],
+      rewards: [],
+      image: "",
+    },
+    {
+      id: "angel_investor",
+      title: "天使投资人",
+      body: "占位文本：一位神秘投资人对你的财富管理产生兴趣。",
+      logText: "事件触发：【天使投资人】。",
+      trigger: {
+        stat: "gold",
+        operator: ">=",
+        value: 3,
+        chance: 0.1,
+      },
+      effects: {},
+      options: [],
+      rewards: [],
+      image: "",
+    },
+  ],
+};
+
+let savedGameAvailable = hasSavedGame();
+let gameState = createDefaultState();
 let eventData = {
   wanderTables: [],
   statEvents: [],
 };
+let selectedUiMode = "";
 let modalQueue = [];
 let activeModalEvent = null;
+let eventDataSource = "unloaded";
+let diligenceButtonBound = false;
 
 const elements = {
   dayText: document.getElementById("dayText"),
@@ -59,6 +222,14 @@ const elements = {
   eventOptions: document.getElementById("eventOptions"),
   eventImageSlot: document.getElementById("eventImageSlot"),
   eventConfirmButton: document.getElementById("eventConfirmButton"),
+  startModal: document.getElementById("startModal"),
+  continueButton: document.getElementById("continueButton"),
+  restartButton: document.getElementById("restartButton"),
+  modeModal: document.getElementById("modeModal"),
+  modeSwitchButton: document.getElementById("modeSwitchButton"),
+  modeOptions: document.querySelectorAll("[data-mode-choice]"),
+  saveButton: document.getElementById("saveButton"),
+  clearSaveButton: document.getElementById("clearSaveButton"),
 };
 
 init();
@@ -67,7 +238,9 @@ async function init() {
   eventData = await loadEventData();
   renderActions();
   bindUiEvents();
+  setupEntryUi();
   render();
+  logStartupDiagnostics();
 }
 
 function bindUiEvents() {
@@ -77,33 +250,223 @@ function bindUiEvents() {
   });
 
   elements.eventConfirmButton.addEventListener("click", closeEventModal);
+  elements.continueButton.addEventListener("click", continueSavedGame);
+  elements.restartButton.addEventListener("click", restartGame);
+  elements.saveButton.addEventListener("click", () => {
+    saveGame();
+    flashSaveButton();
+  });
+  elements.clearSaveButton.addEventListener("click", clearSavedGame);
+}
+
+function readStorage(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (error) {
+    console.warn("localStorage 读取失败。", key, error);
+    return null;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    console.warn("localStorage 写入失败。", key, error);
+    return false;
+  }
+}
+
+function removeStorage(key) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    console.warn("localStorage 删除失败。", key, error);
+  }
+}
+
+function logStartupDiagnostics() {
+  const diligenceButton = document.querySelector('[data-action-id="court_duties"]');
+  const modalStyle = elements.eventModal ? window.getComputedStyle(elements.eventModal) : null;
+  const diagnostics = {
+    scriptVersion: SCRIPT_VERSION,
+    localStorageKeys: {
+      save: SAVE_KEY,
+      mode: MODE_KEY,
+    },
+    diligenceButtonBound: diligenceButtonBound && Boolean(diligenceButton),
+    eventModalFound: Boolean(elements.eventModal && elements.eventTitle && elements.eventConfirmButton),
+    eventModalCss: modalStyle
+      ? {
+          zIndex: modalStyle.zIndex,
+          display: modalStyle.display,
+          visibility: modalStyle.visibility,
+          pointerEvents: modalStyle.pointerEvents,
+        }
+      : null,
+    eventDataSource: eventDataSource,
+    protocol: window.location.protocol,
+  };
+
+  console.log("[VichirDaily startup] " + JSON.stringify(diagnostics));
+}
+
+function setupEntryUi() {
+  elements.modeOptions.forEach((button) => {
+    button.addEventListener("click", () => {
+      applyUiMode(button.dataset.modeChoice);
+    });
+  });
+
+  elements.modeSwitchButton.addEventListener("click", showModeModal);
+
+  if (savedGameAvailable) {
+    showStartModal();
+    return;
+  }
+
+  beginNewGame();
+}
+
+function showStartModal() {
+  document.body.classList.add("mode-normal");
+  elements.startModal.hidden = false;
+  elements.modeModal.hidden = true;
+  elements.modeSwitchButton.hidden = true;
+  document.body.classList.add("mode-pending");
+}
+
+function continueSavedGame() {
+  const saved = loadSavedGame();
+
+  if (!saved) {
+    savedGameAvailable = false;
+    beginNewGame();
+    return;
+  }
+
+  gameState = saved.gameState;
+  selectedUiMode = saved.uiMode || loadUiMode() || "";
+  modalQueue = saved.modalQueue;
+  activeModalEvent = null;
+
+  if (saved.activeModalEvent) {
+    modalQueue.unshift(saved.activeModalEvent);
+  }
+
+  elements.startModal.hidden = true;
+  applyUiMode(selectedUiMode || "normal", { persist: false, save: false });
+  render();
+  showNextModal();
+}
+
+function restartGame() {
+  removeStorage(SAVE_KEY);
+  removeStorage(MODE_KEY);
+  savedGameAvailable = false;
+  beginNewGame();
+}
+
+function beginNewGame() {
+  gameState = createDefaultState();
+  selectedUiMode = "";
+  modalQueue = [];
+  activeModalEvent = null;
+  elements.startModal.hidden = true;
+  elements.eventModal.hidden = true;
+  document.body.classList.add("mode-normal");
+  render();
+  showModeModal();
+}
+
+function showModeModal() {
+  elements.modeModal.hidden = false;
+  elements.modeSwitchButton.hidden = true;
+  document.body.classList.add("mode-pending");
+}
+
+function applyUiMode(mode, options = {}) {
+  if (!UI_MODES[mode]) {
+    return;
+  }
+
+  const shouldPersist = options.persist !== false;
+  const shouldSave = options.save !== false;
+  selectedUiMode = mode;
+
+  if (shouldPersist) {
+    writeStorage(MODE_KEY, mode);
+  }
+
+  document.body.classList.toggle("mode-normal", mode === "normal");
+  document.body.classList.toggle("mode-evil", mode === "evil");
+  document.body.classList.remove("mode-pending");
+  elements.startModal.hidden = true;
+  elements.modeModal.hidden = true;
+  elements.modeSwitchButton.hidden = false;
+  render();
+
+  if (shouldSave) {
+    saveGame();
+  }
 }
 
 function createDefaultState() {
-  return {
-    ...defaultState,
+  return Object.assign({}, defaultState, {
     todayLogs: [],
     historyLogs: [],
     triggeredEvents: [],
-  };
+  });
 }
 
-function loadGame() {
-  const saved = localStorage.getItem(SAVE_KEY);
+function hasSavedGame() {
+  return Boolean(readStorage(SAVE_KEY));
+}
+
+function loadSavedGame() {
+  const saved = readStorage(SAVE_KEY);
 
   if (!saved) {
-    return createDefaultState();
+    return null;
   }
 
   try {
+    const parsed = JSON.parse(saved);
+
+    if (parsed && parsed.gameState) {
+      return {
+        gameState: normalizeGameState(parsed.gameState),
+        uiMode: UI_MODES[parsed.uiMode] ? parsed.uiMode : "",
+        modalQueue: Array.isArray(parsed.modalQueue) ? parsed.modalQueue : [],
+        activeModalEvent: parsed.activeModalEvent || null,
+      };
+    }
+
     return {
-      ...createDefaultState(),
-      ...JSON.parse(saved),
+      gameState: normalizeGameState(parsed),
+      uiMode: loadUiMode(),
+      modalQueue: [],
+      activeModalEvent: null,
     };
   } catch (error) {
     console.warn("存档读取失败，已使用默认状态。", error);
-    return createDefaultState();
+    return null;
   }
+}
+
+function normalizeGameState(state = {}) {
+  return Object.assign({}, createDefaultState(), state, {
+    todayLogs: Array.isArray(state.todayLogs) ? state.todayLogs : [],
+    historyLogs: Array.isArray(state.historyLogs) ? state.historyLogs : [],
+    triggeredEvents: Array.isArray(state.triggeredEvents) ? state.triggeredEvents : [],
+  });
+}
+
+function loadUiMode() {
+  const savedMode = readStorage(MODE_KEY);
+
+  return UI_MODES[savedMode] ? savedMode : "";
 }
 
 async function loadEventData() {
@@ -114,12 +477,12 @@ async function loadEventData() {
       throw new Error(`事件数据读取失败：${response.status}`);
     }
 
+    eventDataSource = EVENT_DATA_URL;
     return normalizeEventData(await response.json());
   } catch (error) {
     console.warn("事件数据读取失败。请确认 data/events.json 可被当前浏览器读取。", error);
-    addLog("事件数据读取失败：请确认 data/events.json 存在，或使用本地预览服务打开页面。");
-    saveGame();
-    return normalizeEventData({});
+    eventDataSource = "built-in fallback";
+    return cloneEventData(DEFAULT_EVENT_DATA);
   }
 }
 
@@ -130,8 +493,45 @@ function normalizeEventData(data) {
   };
 }
 
+function cloneEventData(data) {
+  return normalizeEventData(JSON.parse(JSON.stringify(data)));
+}
+
 function saveGame() {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+  const modeLabel = selectedUiMode ? UI_MODES[selectedUiMode].label : gameState.mode;
+  const saveData = {
+    version: SAVE_VERSION,
+    savedAt: new Date().toISOString(),
+    uiMode: selectedUiMode,
+    gameState: Object.assign({}, gameState, {
+      mode: modeLabel,
+    }),
+    modalQueue,
+    activeModalEvent,
+  };
+
+  writeStorage(SAVE_KEY, JSON.stringify(saveData));
+
+  if (selectedUiMode) {
+    writeStorage(MODE_KEY, selectedUiMode);
+  }
+}
+
+function clearSavedGame() {
+  removeStorage(SAVE_KEY);
+  removeStorage(MODE_KEY);
+  savedGameAvailable = false;
+  elements.clearSaveButton.textContent = "已清除";
+  window.setTimeout(() => {
+    elements.clearSaveButton.textContent = "清除存档";
+  }, 900);
+}
+
+function flashSaveButton() {
+  elements.saveButton.textContent = "已保存";
+  window.setTimeout(() => {
+    elements.saveButton.textContent = "保存游戏";
+  }, 900);
 }
 
 function renderActions() {
@@ -145,13 +545,16 @@ function renderActions() {
     button.title = action.description;
     button.textContent = action.name;
     button.addEventListener("click", () => performAction(action.id));
+    if (action.id === "court_duties") {
+      diligenceButtonBound = true;
+    }
     elements.actionList.appendChild(button);
   });
 }
 
 function render() {
   elements.dayText.textContent = `Day ${gameState.day}`;
-  elements.modeText.textContent = gameState.mode;
+  elements.modeText.textContent = selectedUiMode ? UI_MODES[selectedUiMode].label : gameState.mode;
   elements.actionPointText.textContent = `${gameState.actionPoints} / ${MAX_ACTION_POINTS}`;
   elements.diligenceText.textContent = gameState.diligence;
   elements.visionText.textContent = gameState.vision;
@@ -273,10 +676,7 @@ function resolveWanderEvent() {
     id: event.id,
     title: event.title || table.title,
     logText: event.logText || event.body || table.fallbackText,
-    effects: {
-      ...(table.effects || {}),
-      ...(event.effects || {}),
-    },
+    effects: Object.assign({}, table.effects || {}, event.effects || {}),
     event,
   };
 }
@@ -291,7 +691,7 @@ function checkStatEvents() {
       return;
     }
 
-    if (!passesChance(event.trigger?.chance)) {
+    if (!passesChance(event.trigger && event.trigger.chance)) {
       return;
     }
 
@@ -369,6 +769,7 @@ function closeEventModal() {
   activeModalEvent = null;
   renderActionButtons();
   showNextModal();
+  saveGame();
 }
 
 function renderRewards(rewards = []) {
@@ -439,9 +840,9 @@ function pickRandom(items = []) {
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
