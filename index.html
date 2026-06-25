@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VichirDaily</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="ledger" aria-label="VichirDaily 首页">
+    <section class="ledger-page ledger-page-left">
+      <header class="title-panel">
+        <p class="ornament">◆ ◆ ◆</p>
+        <h1>VichirDaily</h1>
+        <p class="subtitle">大维齐尔日常账簿</p>
+      </header>
+
+      <aside class="status-panel" aria-label="状态栏">
+        <h2>御前状态</h2>
+        <dl class="status-list">
+          <div>
+            <dt>日期</dt>
+            <dd id="dayText">Day 1</dd>
+          </div>
+          <div>
+            <dt>模式</dt>
+            <dd id="modeText">通常</dd>
+          </div>
+          <div>
+            <dt>行动力</dt>
+            <dd id="actionPointText">3 / 3</dd>
+          </div>
+          <div>
+            <dt>勤政</dt>
+            <dd id="diligenceText">0</dd>
+          </div>
+          <div>
+            <dt>灵视</dt>
+            <dd id="visionText">0</dd>
+          </div>
+          <div>
+            <dt>金币</dt>
+            <dd id="goldText">0</dd>
+          </div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="ledger-page ledger-page-right">
+      <div class="main-grid">
+        <section class="action-panel" aria-label="行动区">
+          <h2>今日谕令</h2>
+          <div class="action-list" id="actionList"></div>
+        </section>
+
+        <section class="log-panel" aria-label="日志区">
+          <h2>宫廷日志</h2>
+          <div id="todayLog" class="log-text" aria-live="polite">今日尚未行动</div>
+        </section>
+      </div>
+
+      <footer class="ledger-footer">
+        <button id="historyButton" class="history-button" type="button">历史日志</button>
+      </footer>
+
+      <section id="historyPanel" class="history-panel" aria-label="历史日志" hidden>
+        <h2>历史日志</h2>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="eventModal" class="event-modal" role="dialog" aria-modal="true" aria-labelledby="eventTitle" hidden>
+    <div class="event-backdrop"></div>
+    <section class="event-card">
+      <p id="eventImageSlot" class="event-image-slot" aria-hidden="true"></p>
+      <h2 id="eventTitle">事件标题</h2>
+      <p id="eventBody" class="event-body">事件正文</p>
+      <div id="eventRewards" class="event-rewards"></div>
+      <div id="eventOptions" class="event-options"></div>
+      <button id="eventConfirmButton" class="event-confirm-button" type="button">确定</button>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

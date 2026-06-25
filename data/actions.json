@@ -1,0 +1,17 @@
+[
+  {
+    "id": "court_duties",
+    "name": "处理公务",
+    "effect": "diligence +1"
+  },
+  {
+    "id": "wander",
+    "name": "随处走走",
+    "effect": "placeholder random result"
+  },
+  {
+    "id": "estate",
+    "name": "治理家业",
+    "effect": "gold +1"
+  }
+]

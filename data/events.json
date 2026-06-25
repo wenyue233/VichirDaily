@@ -1,0 +1,147 @@
+{
+  "wanderTables": [
+    {
+      "id": "wander_normal",
+      "type": "normal",
+      "title": "普通闲逛",
+      "weight": 60,
+      "effects": {},
+      "fallbackText": "随处走走：宫廷今日平静无事。",
+      "events": [
+        {
+          "id": "corridor_whisper",
+          "title": "长廊低语",
+          "body": "你在长廊听见几句未成形的传闻。",
+          "logText": "随处走走：你在长廊听见几句未成形的传闻。",
+          "options": [],
+          "rewards": [],
+          "image": ""
+        },
+        {
+          "id": "quiet_courtyard",
+          "title": "安静庭院",
+          "body": "庭院风沙渐起，今日暂无特别收获。",
+          "logText": "随处走走：庭院风沙渐起，今日暂无特别收获。",
+          "options": [],
+          "rewards": [],
+          "image": ""
+        }
+      ]
+    },
+    {
+      "id": "wander_vision",
+      "type": "vision",
+      "title": "灵视浮现",
+      "weight": 25,
+      "effects": {
+        "vision": 1
+      },
+      "fallbackText": "随处走走：你察觉到一丝异样气息，灵视 +1。",
+      "events": [
+        {
+          "id": "silver_shadow",
+          "title": "银色影子",
+          "body": "你在帘幕后看见一抹银色影子，很快又消失不见。",
+          "logText": "随处走走：你看见一抹银色影子，灵视 +1。",
+          "options": [],
+          "rewards": ["灵视 +1"],
+          "image": ""
+        }
+      ]
+    },
+    {
+      "id": "wander_gold",
+      "type": "gold",
+      "title": "意外收获",
+      "weight": 10,
+      "effects": {
+        "gold": 1
+      },
+      "fallbackText": "随处走走：你捡到一枚遗落的金币，金币 +1。",
+      "events": [
+        {
+          "id": "lost_coin",
+          "title": "遗落金币",
+          "body": "一枚金币滚到你的靴边，没人前来认领。",
+          "logText": "随处走走：你捡到一枚遗落的金币，金币 +1。",
+          "options": [],
+          "rewards": ["金币 +1"],
+          "image": ""
+        }
+      ]
+    },
+    {
+      "id": "wander_special",
+      "type": "special",
+      "title": "特殊闲逛事件",
+      "weight": 5,
+      "effects": {},
+      "fallbackText": "随处走走：一个特殊事件正在等待补完。",
+      "events": [
+        {
+          "id": "veiled_guest",
+          "title": "蒙面访客",
+          "body": "一个蒙面人从柱影后向你点头，随即消失在人群中。",
+          "logText": "随处走走：你遇见一名蒙面访客。特殊事件占位。",
+          "options": [],
+          "rewards": [],
+          "image": ""
+        }
+      ]
+    }
+  ],
+  "statEvents": [
+    {
+      "id": "sultan_reward",
+      "title": "苏丹的奖励",
+      "body": "占位文本：你的勤政被苏丹看见，一份奖励正在拟定。",
+      "logText": "事件触发：【苏丹的奖励】。勤政归零。",
+      "trigger": {
+        "stat": "diligence",
+        "operator": ">=",
+        "value": 10,
+        "chance": 1
+      },
+      "effects": {
+        "diligence": "reset"
+      },
+      "options": [],
+      "rewards": [],
+      "image": ""
+    },
+    {
+      "id": "fluffy_promise",
+      "title": "毛茸茸之约",
+      "body": "占位文本：某个毛茸茸的存在回应了你的灵视。",
+      "logText": "事件触发：【毛茸茸之约】。灵视归零。",
+      "trigger": {
+        "stat": "vision",
+        "operator": ">=",
+        "value": 3,
+        "chance": 1
+      },
+      "effects": {
+        "vision": "reset"
+      },
+      "options": [],
+      "rewards": [],
+      "image": ""
+    },
+    {
+      "id": "angel_investor",
+      "title": "天使投资人",
+      "body": "占位文本：一位神秘投资人对你的财富管理产生兴趣。",
+      "logText": "事件触发：【天使投资人】。",
+      "trigger": {
+        "stat": "gold",
+        "operator": ">=",
+        "value": 3,
+        "chance": 0.1
+      },
+      "effects": {},
+      "options": [],
+      "rewards": [],
+      "image": ""
+    }
+  ]
+}
