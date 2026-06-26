@@ -13,6 +13,7 @@
   </div>
 
   <button id="modeSwitchButton" class="mode-switch-button" type="button" hidden>切换模式</button>
+  <button id="devToggleButton" class="dev-toggle-button" type="button">开发者模式</button>
 
   <main class="ledger" aria-label="VichirDaily 首页">
     <section class="ledger-page ledger-page-left">
@@ -57,6 +58,10 @@
               <span class="sr-only">财富</span>
             </dt>
             <dd id="goldText">0</dd>
+          </div>
+          <div id="madnessRow" hidden>
+            <dt>疯狂</dt>
+            <dd id="madnessText">0</dd>
           </div>
         </dl>
       </aside>
@@ -127,6 +132,31 @@
       <button id="eventConfirmButton" class="event-confirm-button" type="button">确定</button>
     </section>
   </div>
+
+  <div id="dayEndModal" class="event-modal day-end-modal" role="dialog" aria-modal="true" aria-labelledby="dayEndTitle" hidden>
+    <div class="event-backdrop"></div>
+    <section class="event-card">
+      <h2 id="dayEndTitle">日终结算</h2>
+      <div id="dayEndBody" class="day-end-body"></div>
+      <button id="nextDayButton" class="event-confirm-button" type="button">进入下一天</button>
+    </section>
+  </div>
+
+  <aside id="devPanel" class="dev-panel" aria-label="开发者模式" hidden>
+    <h2>开发者模式</h2>
+    <div class="dev-panel-grid">
+      <button type="button" data-dev-action="diligence">勤政 +1</button>
+      <button type="button" data-dev-action="vision">灵视 +1</button>
+      <button type="button" data-dev-action="gold">金币 +1</button>
+      <button class="evil-only" type="button" data-dev-action="madness">疯狂 +1</button>
+      <button type="button" data-dev-action="restore-ap">行动力恢复到3</button>
+      <button type="button" data-dev-action="next-day">直接进入下一天</button>
+      <button type="button" data-dev-action="sultan-1">触发【苏丹的奖励Ⅰ】</button>
+      <button type="button" data-dev-action="fluffy">触发【毛茸茸之约】</button>
+      <button class="evil-only" type="button" data-dev-action="abyss">触发【深渊的邀请】</button>
+      <button type="button" data-dev-action="reset-save">清空存档并回到模式选择</button>
+    </div>
+  </aside>
 
   <script src="script.js"></script>
 </body>

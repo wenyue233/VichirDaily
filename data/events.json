@@ -92,19 +92,48 @@
   ],
   "statEvents": [
     {
-      "id": "sultan_reward",
-      "title": "苏丹的奖励",
-      "body": "占位文本：你的勤政被苏丹看见，一份奖励正在拟定。",
-      "logText": "事件触发：【苏丹的奖励】。勤政归零。",
-      "trigger": {
-        "stat": "diligence",
-        "operator": ">=",
-        "value": 10,
-        "chance": 1
-      },
-      "effects": {
-        "diligence": "reset"
-      },
+      "id": "sultan_reward_1",
+      "type": "diligenceReward",
+      "stage": 1,
+      "title": "苏丹的奖励Ⅰ",
+      "body": "占位文本：你的勤政达到新的阶段，苏丹赐下第一份奖励。",
+      "logText": "事件触发：【苏丹的奖励Ⅰ】。",
+      "effects": {},
+      "options": [],
+      "rewards": [],
+      "image": ""
+    },
+    {
+      "id": "sultan_reward_2",
+      "type": "diligenceReward",
+      "stage": 2,
+      "title": "苏丹的奖励Ⅱ",
+      "body": "占位文本：你的勤政再次得到苏丹嘉许。",
+      "logText": "事件触发：【苏丹的奖励Ⅱ】。",
+      "effects": {},
+      "options": [],
+      "rewards": [],
+      "image": ""
+    },
+    {
+      "id": "sultan_reward_3",
+      "type": "diligenceReward",
+      "stage": 3,
+      "title": "苏丹的奖励Ⅲ",
+      "body": "占位文本：你的勤政第三次被写入宫廷记录。",
+      "logText": "事件触发：【苏丹的奖励Ⅲ】。",
+      "effects": {},
+      "options": [],
+      "rewards": [],
+      "image": ""
+    },
+    {
+      "id": "sultan_reward_template",
+      "type": "diligenceRewardTemplate",
+      "titleTemplate": "苏丹的奖励{stage}",
+      "body": "占位文本：你的勤政继续累积，苏丹再次给予奖励。",
+      "logTextTemplate": "事件触发：【苏丹的奖励{stage}】。",
+      "effects": {},
       "options": [],
       "rewards": [],
       "image": ""
@@ -142,6 +171,26 @@
       "options": [],
       "rewards": [],
       "image": ""
+    },
+    {
+      "id": "abyss_invitation",
+      "title": "深渊的邀请",
+      "body": "占位文本：深处传来一封只属于邪恶化身的请柬。",
+      "logText": "事件触发：【深渊的邀请】。",
+      "trigger": {
+        "stat": "vision",
+        "operator": ">=",
+        "value": 3,
+        "chance": 1
+      },
+      "effects": {
+        "vision": "reset",
+        "madness": 1
+      },
+      "options": [],
+      "rewards": [],
+      "image": "",
+      "evilOnly": true
     }
   ]
 }
