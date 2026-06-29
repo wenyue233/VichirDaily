@@ -1,31 +1,20 @@
 @font-face {
-  font-family: "BaiWuchangKeke";
-  src:
-    url("assets/fonts/BaiWuchangKeke.woff2") format("woff2"),
-    url("assets/fonts/BaiWuchangKeke.ttf") format("truetype");
+  font-family: "VichirNarrative";
+  src: url("assets/fonts/BaiWuChangKeKe-Regular.ttf") format("truetype");
   font-display: swap;
 }
 
 @font-face {
-  font-family: "LXGWWenKaiLocal";
-  src:
-    url("assets/fonts/LXGWWenKai-Regular.woff2") format("woff2"),
-    url("assets/fonts/LXGWWenKai-Regular.ttf") format("truetype");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "NotoSansSCLocal";
-  src:
-    url("assets/fonts/NotoSansSC-Regular.woff2") format("woff2"),
-    url("assets/fonts/NotoSansSC-Regular.ttf") format("truetype");
+  font-family: "VichirUI";
+  src: url("assets/fonts/ui.otf") format("opentype");
   font-display: swap;
 }
 
 :root {
-  --font-title: "BaiWuchangKeke", "STKaiti", "KaiTi", serif;
-  --font-body: "LXGWWenKaiLocal", "霞鹜文楷", "KaiTi", "STKaiti", serif;
-  --font-number: "NotoSansSCLocal", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-title: "VichirUI", "STKaiti", "KaiTi", serif;
+  --font-ui: "VichirUI", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-body: "VichirNarrative", "LXGW WenKai", "KaiTi", "STKaiti", serif;
+  --font-number: "VichirUI", "Noto Sans SC", "Microsoft YaHei", sans-serif;
 
   --paper-0: #fbf5e8;
   --paper-1: #f3e7cf;
@@ -57,7 +46,7 @@ body {
   min-height: 100vh;
   margin: 0;
   color: var(--ink);
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   background:
     radial-gradient(circle at 18% 18%, rgba(198, 169, 112, 0.26), transparent 20rem),
     radial-gradient(circle at 84% 12%, rgba(120, 147, 154, 0.18), transparent 18rem),
@@ -165,6 +154,27 @@ body::before {
   z-index: 5;
 }
 
+.ledger-corner {
+  position: absolute;
+  z-index: 4;
+  width: clamp(76px, 8vw, 112px);
+  height: clamp(98px, 10.4vw, 145px);
+  pointer-events: none;
+  background: url("assets/ui/corner_gold.png") center / contain no-repeat;
+  opacity: 0.78;
+}
+
+.ledger-corner-top-left {
+  top: 2px;
+  left: 2px;
+}
+
+.ledger-corner-bottom-right {
+  right: 2px;
+  bottom: 2px;
+  transform: scaleX(-1) scaleY(-1);
+}
+
 body.mode-pending .ledger {
   opacity: 0;
   transform: translateY(10px);
@@ -179,7 +189,7 @@ body.mode-pending .ledger {
   min-height: 34px;
   padding: 7px 12px;
   color: var(--wine-dark);
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 700;
   border: 1px solid rgba(157, 122, 56, 0.24);
@@ -443,6 +453,12 @@ h2::after {
   background: linear-gradient(90deg, rgba(157, 122, 56, 0.36), transparent);
 }
 
+.status-panel h2,
+.action-panel h2,
+.log-panel h2 {
+  position: relative;
+}
+
 .status-panel,
 .action-panel,
 .log-panel,
@@ -471,6 +487,10 @@ h2::after {
   border-bottom: 1px solid var(--line);
 }
 
+.status-list div[hidden] {
+  display: none;
+}
+
 .status-list div:last-child {
   border-bottom: 0;
 }
@@ -486,8 +506,8 @@ dt {
 }
 
 .stat-label img {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   filter: drop-shadow(0 3px 5px rgba(68, 54, 35, 0.12));
 }
@@ -537,7 +557,7 @@ dd {
 }
 
 .action-card {
-  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4h8l3 3v13H7z'/%3E%3Cpath d='M15 4v4h4'/%3E%3Cpath d='M9 12h6'/%3E%3Cpath d='M9 16h4'/%3E%3C/svg%3E");
+  --icon: url("assets/icons/action_work.png");
   width: 100%;
   min-height: 86px;
   display: grid;
@@ -569,30 +589,26 @@ dd {
 .action-card::before {
   content: "";
   grid-row: 1 / span 2;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background:
-    linear-gradient(135deg, rgba(120, 147, 154, 0.18), rgba(157, 122, 56, 0.10)),
-    var(--paper-0);
-  box-shadow: inset 0 0 0 1px rgba(120, 147, 154, 0.18);
-  -webkit-mask: var(--icon) center / 24px 24px no-repeat, linear-gradient(#000 0 0);
-  -webkit-mask-composite: source-over;
-  mask: var(--icon) center / 24px 24px no-repeat, linear-gradient(#000 0 0);
+  width: clamp(28px, 3vw, 36px);
+  height: clamp(28px, 3vw, 36px);
+  align-self: center;
+  justify-self: center;
+  background: var(--icon) center / contain no-repeat;
+  filter: drop-shadow(0 3px 5px rgba(68, 54, 35, 0.13));
 }
 
 .action-card::after {
   content: "处理朝政，增加勤政";
   grid-column: 2;
   color: var(--ink-soft);
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 400;
   line-height: 1.45;
 }
 
 .action-card[data-action-id="wander"] {
-  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 4c2 2 2 4 0 6l-2 2c-2 2-2 5 1 6'/%3E%3Cpath d='M15 5c1.7 1.5 1.9 3.4.5 5.2l-1.5 2c-1.6 2.1-.9 4.3 2 5.8'/%3E%3Cpath d='M7 20h4'/%3E%3Cpath d='M14 20h4'/%3E%3C/svg%3E");
+  --icon: url("assets/icons/action_walk.png");
 }
 
 .action-card[data-action-id="wander"]::after {
@@ -600,7 +616,7 @@ dd {
 }
 
 .action-card[data-action-id="estate"] {
-  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 11.5 12 5l8 6.5'/%3E%3Cpath d='M6.5 10.5V20h11V10.5'/%3E%3Cpath d='M10 20v-5h4v5'/%3E%3Cpath d='M9 12.5h6'/%3E%3C/svg%3E");
+  --icon: url("assets/icons/action_estate.png");
 }
 
 .action-card[data-action-id="estate"]::after {
@@ -795,6 +811,64 @@ dd {
     var(--card-solid);
   box-shadow: 0 24px 70px rgba(25, 34, 40, 0.25);
   animation: modalIn 180ms ease-out;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.event-card > :not(.event-decor) {
+  position: relative;
+  z-index: 3;
+}
+
+.event-decor {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.event-decor-piece {
+  position: absolute;
+  display: block;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.event-decor-large {
+  z-index: 0;
+  left: clamp(-190px, -22vw, -150px);
+  top: clamp(-72px, -10vh, -36px);
+  width: auto;
+  height: clamp(150px, 58%, 330px);
+  aspect-ratio: 0.72;
+  background-image: url("assets/decor/lantern_large.png");
+  opacity: 0.92;
+}
+
+.event-decor-small {
+  z-index: 1;
+  right: clamp(18px, 6vw, 46px);
+  top: clamp(-62px, -8vh, -34px);
+  width: auto;
+  height: clamp(42px, 16%, 88px);
+  aspect-ratio: 0.72;
+  background-image: url("assets/decor/lantern_small.png");
+  opacity: 0.9;
+}
+
+.event-decor-leaf {
+  z-index: 1;
+  right: clamp(-54px, -7vw, -26px);
+  top: clamp(-38px, -5vh, -18px);
+  width: clamp(104px, 32%, 206px);
+  height: auto;
+  aspect-ratio: 1.65;
+  background-image: url("assets/decor/leaf_fern.png");
+  opacity: 0.82;
+  transform: rotate(13deg);
 }
 
 .event-card h2 {
@@ -941,6 +1015,22 @@ dd {
   .ledger-page {
     padding: 32px;
   }
+
+  .event-decor-leaf {
+    display: none;
+  }
+
+  .event-decor-large {
+    left: -120px;
+    top: -42px;
+    height: clamp(126px, 46%, 220px);
+  }
+
+  .event-decor-small {
+    right: 18px;
+    top: -42px;
+    height: clamp(36px, 13%, 66px);
+  }
 }
 
 @media (max-width: 520px) {
@@ -955,5 +1045,32 @@ dd {
   .action-card {
     min-height: 82px;
     font-size: 20px;
+  }
+
+  .event-modal {
+    padding: 20px 16px;
+  }
+
+  .event-decor-small,
+  .event-decor-leaf {
+    display: none;
+  }
+
+  .event-decor-large {
+    left: -90px;
+    top: -36px;
+    height: clamp(104px, 40%, 170px);
+    opacity: 0.82;
+  }
+}
+
+@media (max-height: 620px) {
+  .event-decor-small,
+  .event-decor-leaf {
+    display: none;
+  }
+
+  .event-decor-large {
+    height: clamp(100px, 40%, 180px);
   }
 }

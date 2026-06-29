@@ -16,6 +16,8 @@
   <button id="devToggleButton" class="dev-toggle-button" type="button">开发者模式</button>
 
   <main class="ledger" aria-label="VichirDaily 首页">
+    <span class="ledger-corner ledger-corner-top-left" aria-hidden="true"></span>
+    <span class="ledger-corner ledger-corner-bottom-right" aria-hidden="true"></span>
     <section class="ledger-page ledger-page-left">
       <header class="title-panel">
         <p class="ornament">◆ ◆ ◆</p>
@@ -60,7 +62,10 @@
             <dd id="goldText">0</dd>
           </div>
           <div id="madnessRow" hidden>
-            <dt>疯狂</dt>
+            <dt class="stat-label" title="疯狂">
+              <img src="assets/icons/action_crazy.png" alt="" title="疯狂">
+              <span class="sr-only">疯狂</span>
+            </dt>
             <dd id="madnessText">0</dd>
           </div>
         </dl>
@@ -124,6 +129,11 @@
   <div id="eventModal" class="event-modal" role="dialog" aria-modal="true" aria-labelledby="eventTitle" hidden>
     <div class="event-backdrop"></div>
     <section class="event-card">
+      <div class="event-decor" aria-hidden="true">
+        <span class="event-decor-piece event-decor-large"></span>
+        <span class="event-decor-piece event-decor-small"></span>
+        <span class="event-decor-piece event-decor-leaf"></span>
+      </div>
       <p id="eventImageSlot" class="event-image-slot" aria-hidden="true"></p>
       <h2 id="eventTitle">事件标题</h2>
       <p id="eventBody" class="event-body">事件正文</p>
@@ -136,6 +146,11 @@
   <div id="dayEndModal" class="event-modal day-end-modal" role="dialog" aria-modal="true" aria-labelledby="dayEndTitle" hidden>
     <div class="event-backdrop"></div>
     <section class="event-card">
+      <div class="event-decor" aria-hidden="true">
+        <span class="event-decor-piece event-decor-large"></span>
+        <span class="event-decor-piece event-decor-small"></span>
+        <span class="event-decor-piece event-decor-leaf"></span>
+      </div>
       <h2 id="dayEndTitle">日终结算</h2>
       <div id="dayEndBody" class="day-end-body"></div>
       <button id="nextDayButton" class="event-confirm-button" type="button">进入下一天</button>
