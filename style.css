@@ -160,19 +160,22 @@ body::before {
   width: clamp(76px, 8vw, 112px);
   height: clamp(98px, 10.4vw, 145px);
   pointer-events: none;
-  background: url("assets/ui/corner_gold.png") center / contain no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
   opacity: 0.78;
 }
 
 .ledger-corner-top-left {
   top: 2px;
   left: 2px;
+  background-image: url("assets/ui/corner_top_left.png");
 }
 
 .ledger-corner-bottom-right {
   right: 2px;
   bottom: 2px;
-  transform: scaleX(-1) scaleY(-1);
+  background-image: url("assets/ui/corner_bottom_righ.png");
 }
 
 body.mode-pending .ledger {
@@ -214,25 +217,35 @@ body.mode-pending .ledger {
 
 .dev-toggle-button {
   position: fixed;
+  top: 60px;
   right: 18px;
-  bottom: 18px;
   z-index: 12;
   min-height: 34px;
   padding: 7px 12px;
   color: var(--wine-dark);
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 700;
   border: 1px solid rgba(157, 122, 56, 0.24);
   border-radius: 999px;
   background: rgba(255, 250, 240, 0.86);
   box-shadow: var(--shadow-soft);
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.dev-toggle-button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 250, 240, 0.96);
+  box-shadow: 0 10px 22px rgba(68, 54, 35, 0.12);
 }
 
 .dev-panel {
   position: fixed;
+  top: 104px;
   right: 18px;
-  bottom: 62px;
   z-index: 12;
   width: min(320px, calc(100vw - 36px));
   padding: 18px;

@@ -34,6 +34,11 @@ const defaultState = {
   todayStatChanges: {},
   todayTriggeredEvents: [],
   dayEndPending: false,
+  goldLine: {
+    completed: [],
+    gold002CompletedDay: null,
+  },
+  inventory: {},
 };
 
 const actions = [
@@ -123,6 +128,25 @@ const DEFAULT_EVENT_DATA = {
           title: "无事发生",
           body: "过于风平浪静的一天，你决定去书店听听阿萨尔和他的出版计划，希望不要有麻烦事找上你。",
           logText: "过于风平浪静的一天，你决定去书店听听阿萨尔和他的出版计划，希望不要有麻烦事找上你。",
+          options: [],
+          rewards: ["无"],
+          image: "",
+        },
+        {
+          id: "Walk007",
+          title: "摸鱼被抓",
+          body: "在花园的一觉睡得太开心了。当你掀开不知何时被盖在身上的长袍时，天已经黑了。",
+          logText: "在花园的一觉睡得太开心了。当你掀开不知何时被盖在身上的长袍时，天已经黑了。",
+          options: [],
+          rewards: ["勤政 -1"],
+          image: "",
+          note: "如果当前勤政值大于 0，则勤政 -1。\n如果当前勤政值已经为 0，则本事件不扣除勤政（不要出现负数）。",
+        },
+        {
+          id: "Walk008",
+          title: "带薪摸鱼",
+          body: "就算是议长也要午休！在你的强烈抗议下，你和仁慈的至高苏丹一起享用了下午茶。",
+          logText: "就算是议长也要午休！在你的强烈抗议下，你和仁慈的至高苏丹一起享用了下午茶。",
           options: [],
           rewards: ["无"],
           image: "",
@@ -303,6 +327,115 @@ const DEFAULT_EVENT_DATA = {
       evilOnly: true,
     },
   ],
+  goldLineEvents: [
+    {
+      id: "Gold001",
+      type: "goldLine",
+      title: "天使投资人Ⅰ",
+      body: "你收到了来自苗圃的信件。你让阿里木偶尔代理校长的位置，他也时不时给你分享孩子们的近况。看来，被玛希尔的教育理念打动的孩子不在少数—手工课的材料开销也是大大增加了！老阿里木表示自己对合法渠道弄来金币没有头绪，所以，议长大人愿意成为这位\"天使投资人\"吗？",
+      trigger: {
+        id: "Gold001",
+        requiresGold: 3,
+        requiresIncomplete: "Gold001",
+      },
+      options: [
+        {
+          label: "总之先拨款",
+          resultText: "你当然不介意满足孩子们的好奇心。",
+          effects: {
+            gold: -2,
+            completeGoldEvent: "Gold001",
+            unlockGoldEvent: "Gold002",
+          },
+          effectText: "金币 -2\n解锁 Gold002 \nGold001 标记为已完成 ",
+        },
+        {
+          label: "我再想想",
+          resultText: "繁忙的公务使你把这封信暂时搁置到了书架上。",
+          effects: {},
+          effectText: "本次不消耗金币 \nGold001 不标记完成 \n后续满足触发条件时，仍有概率再次触发 Gold001 ",
+        },
+      ],
+      rewards: [],
+      image: "",
+      note: "这是金币线的起始事件。\n选择“我再想想”不会关闭剧情线，只是暂时放弃，本事件以后仍可能再次出现。",
+    },
+    {
+      id: "Gold002",
+      type: "goldLine",
+      title: "天使投资人Ⅱ",
+      body: "又是一封来自苗圃的信件，署名来自你们上次看望过的孩子。歪歪扭扭的字迹也难掩激动的心情，看来，你们亲手栽下的幼苗，正在茁壮成长。",
+      trigger: {
+        id: "Gold002",
+        requiresCompleted: "Gold001",
+        requiresGold: 8,
+        requiresIncomplete: "Gold002",
+      },
+      options: [
+        {
+          label: "继续资助",
+          resultText: "你乐意看到更多的结果",
+          effects: {
+            gold: -4,
+            completeGoldEvent: "Gold002",
+            unlockGoldEvent: "Gold003",
+            setGold002CompletedDay: true,
+          },
+          effectText: "金币 -4\n解锁 Gold003 \nGold002 标记为已完成 ",
+        },
+        {
+          label: "暂缓投资",
+          resultText: "你在想要不要先挑个时间和你的陛下分享这件事。",
+          effects: {},
+          effectText: "本次不消耗金币 \nGold002 不标记完成 \n后续满足触发条件时，仍有概率再次触发 Gold002 ",
+        },
+      ],
+      rewards: [],
+      image: "",
+      unlockText: "Gold003（仅限选择“继续资助”后解锁）",
+      note: "如果玩家选择暂缓投资，本事件不会结束，以后仍可能再次出现，直到玩家真正决定继续投资。",
+    },
+    {
+      id: "Gold003",
+      type: "goldLine",
+      title: "天使投资人Ⅲ",
+      body: "你收到了成果汇报的邀请函。同时，孩孩子们希望你能带走一份属于他们努力的证明。",
+      trigger: {
+        id: "Gold003",
+        requiresCompleted: "Gold002",
+        requiresIncomplete: "Gold003",
+        minDaysAfterGold002: 7,
+      },
+      options: [
+        {
+          label: "混合动力小帆船（的罗盘）",
+          resultText: "谁来了都会惊讶的成果！虽然不精于操作，让你们废了好大功夫才返航，但毫无疑问，这是让人心情畅快的一天。",
+          effects: {
+            completeGoldEvent: "Gold003",
+            item: {
+              name: "给投资人的回礼",
+              amount: 1,
+            },
+          },
+          effectText: "获得 给投资人的回礼x1（你迫不及待想展示给奈费勒看了）",
+        },
+        {
+          label: "微缩模型",
+          resultText: "谁来了都会惊讶的成果！虽然不精于操作，让你们废了好大功夫才返航，但毫无疑问，这是让人心情畅快的一天。",
+          effects: {
+            completeGoldEvent: "Gold003",
+            item: {
+              name: "给投资人的回礼",
+              amount: 1,
+            },
+          },
+          effectText: "获得 给投资人的回礼x1（你迫不及待想展示给奈费勒看了）",
+        },
+      ],
+      rewards: ["获得 给投资人的回礼x1（你迫不及待想展示给奈费勒看了）"],
+      image: "",
+    },
+  ],
 };
 
 let savedGameAvailable = hasSavedGame();
@@ -310,10 +443,12 @@ let gameState = createDefaultState();
 let eventData = {
   wanderTables: [],
   statEvents: [],
+  goldLineEvents: [],
 };
 let selectedUiMode = "";
 let modalQueue = [];
 let activeModalEvent = null;
+let activeModalResultMode = false;
 let eventDataSource = "unloaded";
 let diligenceButtonBound = false;
 
@@ -373,6 +508,7 @@ function bindUiEvents() {
   });
 
   elements.eventConfirmButton.addEventListener("click", closeEventModal);
+  elements.eventOptions.addEventListener("click", handleEventOptionClick);
   elements.nextDayButton.addEventListener("click", enterNextDay);
   elements.devToggleButton.addEventListener("click", toggleDevPanel);
   elements.devButtons.forEach((button) => {
@@ -548,6 +684,11 @@ function createDefaultState() {
     triggeredDiligenceRewardStages: [],
     todayStatChanges: {},
     todayTriggeredEvents: [],
+    goldLine: {
+      completed: [],
+      gold002CompletedDay: null,
+    },
+    inventory: {},
   });
 }
 
@@ -597,7 +738,16 @@ function normalizeGameState(state = {}) {
     todayStatChanges: state.todayStatChanges && typeof state.todayStatChanges === "object" ? state.todayStatChanges : {},
     todayTriggeredEvents: Array.isArray(state.todayTriggeredEvents) ? state.todayTriggeredEvents : [],
     dayEndPending: Boolean(state.dayEndPending),
+    goldLine: normalizeGoldLineState(state.goldLine),
+    inventory: state.inventory && typeof state.inventory === "object" ? state.inventory : {},
   });
+}
+
+function normalizeGoldLineState(goldLine = {}) {
+  return {
+    completed: Array.isArray(goldLine.completed) ? goldLine.completed : [],
+    gold002CompletedDay: Number.isFinite(Number(goldLine.gold002CompletedDay)) ? Number(goldLine.gold002CompletedDay) : null,
+  };
 }
 
 function loadUiMode() {
@@ -630,6 +780,7 @@ function normalizeEventData(data) {
   return {
     wanderTables: Array.isArray(data.wanderTables) ? data.wanderTables : [],
     statEvents: Array.isArray(data.statEvents) ? data.statEvents : [],
+    goldLineEvents: Array.isArray(data.goldLineEvents) ? data.goldLineEvents : [],
   };
 }
 
@@ -834,6 +985,7 @@ function resolveWanderEvent() {
 function checkStatEvents() {
   checkDiligenceRewardEvents();
   checkVisionEvents();
+  checkGoldLineEvents();
 
   eventData.statEvents.forEach((event) => {
     if (event.type === "diligenceReward" || event.type === "diligenceRewardTemplate") {
@@ -841,6 +993,10 @@ function checkStatEvents() {
     }
 
     if (event.id === "fluffy_promise" || event.id === "abyss_invitation") {
+      return;
+    }
+
+    if (event.id === "angel_investor") {
       return;
     }
 
@@ -862,6 +1018,44 @@ function checkStatEvents() {
 
     triggerEvent(event);
   });
+}
+
+function checkGoldLineEvents() {
+  const event = eventData.goldLineEvents.find((item) => isGoldLineEventReady(item));
+
+  if (event) {
+    triggerEvent(event);
+  }
+}
+
+function isGoldLineEventReady(event) {
+  const trigger = event.trigger || {};
+
+  if (trigger.requiresIncomplete && isGoldEventCompleted(trigger.requiresIncomplete)) {
+    return false;
+  }
+
+  if (trigger.requiresCompleted && !isGoldEventCompleted(trigger.requiresCompleted)) {
+    return false;
+  }
+
+  if (Number.isFinite(Number(trigger.requiresGold)) && Number(gameState.gold || 0) < Number(trigger.requiresGold)) {
+    return false;
+  }
+
+  if (Number.isFinite(Number(trigger.minDaysAfterGold002))) {
+    if (!Number.isFinite(Number(gameState.goldLine.gold002CompletedDay))) {
+      return false;
+    }
+
+    return Number(gameState.day || 1) - Number(gameState.goldLine.gold002CompletedDay) >= Number(trigger.minDaysAfterGold002);
+  }
+
+  return true;
+}
+
+function isGoldEventCompleted(id) {
+  return gameState.goldLine.completed.includes(id);
 }
 
 function checkVisionEvents() {
@@ -977,6 +1171,40 @@ function applyEffects(effects = {}) {
   });
 }
 
+function applyOptionEffects(effects = {}) {
+  const statEffects = {};
+
+  Object.entries(effects).forEach(([key, value]) => {
+    if (key in gameState && typeof value !== "object") {
+      statEffects[key] = value;
+    }
+  });
+
+  applyEffects(statEffects);
+
+  if (effects.completeGoldEvent) {
+    completeGoldEvent(effects.completeGoldEvent);
+  }
+
+  if (effects.setGold002CompletedDay) {
+    gameState.goldLine.gold002CompletedDay = gameState.day;
+  }
+
+  if (effects.item && effects.item.name) {
+    addInventoryItem(effects.item.name, effects.item.amount || 1);
+  }
+}
+
+function completeGoldEvent(id) {
+  if (!gameState.goldLine.completed.includes(id)) {
+    gameState.goldLine.completed.push(id);
+  }
+}
+
+function addInventoryItem(name, amount) {
+  gameState.inventory[name] = Number(gameState.inventory[name] || 0) + Number(amount || 1);
+}
+
 function recordStatChange(stat, amount) {
   if (!amount || Number.isNaN(amount)) {
     return;
@@ -1000,11 +1228,14 @@ function showNextModal() {
   }
 
   activeModalEvent = modalQueue.shift();
+  activeModalResultMode = false;
   elements.eventTitle.textContent = activeModalEvent.title || "事件";
   elements.eventBody.textContent = activeModalEvent.body || "事件正文待填写。";
   elements.eventImageSlot.textContent = activeModalEvent.image || "";
-  elements.eventRewards.innerHTML = renderRewards(activeModalEvent.rewards);
+  elements.eventRewards.innerHTML = hasInteractiveOptions(activeModalEvent) ? "" : renderRewards(activeModalEvent.rewards);
   elements.eventOptions.innerHTML = renderOptions(activeModalEvent.options);
+  elements.eventConfirmButton.hidden = hasInteractiveOptions(activeModalEvent);
+  elements.eventConfirmButton.textContent = "确定";
   elements.eventModal.hidden = false;
   renderActionButtons();
 }
@@ -1012,6 +1243,7 @@ function showNextModal() {
 function closeEventModal() {
   elements.eventModal.hidden = true;
   activeModalEvent = null;
+  activeModalResultMode = false;
   renderActionButtons();
   showNextModal();
   saveGame();
@@ -1033,8 +1265,40 @@ function renderOptions(options = []) {
   }
 
   return options
-    .map((option) => `<button type="button" disabled>${escapeHtml(option.label || option.text || "选项")}</button>`)
+    .map((option, index) => {
+      const disabled = option.resultText ? "" : " disabled";
+      return `<button type="button" data-option-index="${index}"${disabled}>${escapeHtml(option.label || option.text || "选项")}</button>`;
+    })
     .join("");
+}
+
+function hasInteractiveOptions(event) {
+  return Array.isArray(event.options) && event.options.some((option) => option.resultText);
+}
+
+function handleEventOptionClick(event) {
+  const button = event.target.closest("[data-option-index]");
+
+  if (!button || !activeModalEvent || activeModalResultMode) {
+    return;
+  }
+
+  const option = activeModalEvent.options[Number(button.dataset.optionIndex)];
+
+  if (!option || !option.resultText) {
+    return;
+  }
+
+  activeModalResultMode = true;
+  elements.eventBody.textContent = option.resultText;
+  elements.eventRewards.innerHTML = renderRewards(option.rewards || activeModalEvent.rewards);
+  elements.eventOptions.innerHTML = "";
+  elements.eventConfirmButton.hidden = false;
+  elements.eventConfirmButton.textContent = "继续";
+  applyOptionEffects(option.effects || {});
+  addLog(option.resultText);
+  saveGame();
+  render();
 }
 
 function addLog(text) {

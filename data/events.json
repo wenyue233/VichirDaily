@@ -70,6 +70,25 @@
           "options": [],
           "rewards": ["无"],
           "image": ""
+        },
+        {
+          "id": "Walk007",
+          "title": "摸鱼被抓",
+          "body": "在花园的一觉睡得太开心了。当你掀开不知何时被盖在身上的长袍时，天已经黑了。",
+          "logText": "在花园的一觉睡得太开心了。当你掀开不知何时被盖在身上的长袍时，天已经黑了。",
+          "options": [],
+          "rewards": ["勤政 -1"],
+          "image": "",
+          "note": "如果当前勤政值大于 0，则勤政 -1。\n如果当前勤政值已经为 0，则本事件不扣除勤政（不要出现负数）。"
+        },
+        {
+          "id": "Walk008",
+          "title": "带薪摸鱼",
+          "body": "就算是议长也要午休！在你的强烈抗议下，你和仁慈的至高苏丹一起享用了下午茶。",
+          "logText": "就算是议长也要午休！在你的强烈抗议下，你和仁慈的至高苏丹一起享用了下午茶。",
+          "options": [],
+          "rewards": ["无"],
+          "image": ""
         }
       ]
     },
@@ -245,6 +264,115 @@
       "rewards": [],
       "image": "",
       "evilOnly": true
+    }
+  ],
+  "goldLineEvents": [
+    {
+      "id": "Gold001",
+      "type": "goldLine",
+      "title": "天使投资人Ⅰ",
+      "body": "你收到了来自苗圃的信件。你让阿里木偶尔代理校长的位置，他也时不时给你分享孩子们的近况。看来，被玛希尔的教育理念打动的孩子不在少数—手工课的材料开销也是大大增加了！老阿里木表示自己对合法渠道弄来金币没有头绪，所以，议长大人愿意成为这位\"天使投资人\"吗？",
+      "trigger": {
+        "id": "Gold001",
+        "requiresGold": 3,
+        "requiresIncomplete": "Gold001"
+      },
+      "options": [
+        {
+          "label": "总之先拨款",
+          "resultText": "你当然不介意满足孩子们的好奇心。",
+          "effects": {
+            "gold": -2,
+            "completeGoldEvent": "Gold001",
+            "unlockGoldEvent": "Gold002"
+          },
+          "effectText": "金币 -2\n解锁 Gold002 \nGold001 标记为已完成 "
+        },
+        {
+          "label": "我再想想",
+          "resultText": "繁忙的公务使你把这封信暂时搁置到了书架上。",
+          "effects": {},
+          "effectText": "本次不消耗金币 \nGold001 不标记完成 \n后续满足触发条件时，仍有概率再次触发 Gold001 "
+        }
+      ],
+      "rewards": [],
+      "image": "",
+      "note": "这是金币线的起始事件。\n选择“我再想想”不会关闭剧情线，只是暂时放弃，本事件以后仍可能再次出现。"
+    },
+    {
+      "id": "Gold002",
+      "type": "goldLine",
+      "title": "天使投资人Ⅱ",
+      "body": "又是一封来自苗圃的信件，署名来自你们上次看望过的孩子。歪歪扭扭的字迹也难掩激动的心情，看来，你们亲手栽下的幼苗，正在茁壮成长。",
+      "trigger": {
+        "id": "Gold002",
+        "requiresCompleted": "Gold001",
+        "requiresGold": 8,
+        "requiresIncomplete": "Gold002"
+      },
+      "options": [
+        {
+          "label": "继续资助",
+          "resultText": "你乐意看到更多的结果",
+          "effects": {
+            "gold": -4,
+            "completeGoldEvent": "Gold002",
+            "unlockGoldEvent": "Gold003",
+            "setGold002CompletedDay": true
+          },
+          "effectText": "金币 -4\n解锁 Gold003 \nGold002 标记为已完成 "
+        },
+        {
+          "label": "暂缓投资",
+          "resultText": "你在想要不要先挑个时间和你的陛下分享这件事。",
+          "effects": {},
+          "effectText": "本次不消耗金币 \nGold002 不标记完成 \n后续满足触发条件时，仍有概率再次触发 Gold002 "
+        }
+      ],
+      "rewards": [],
+      "image": "",
+      "unlockText": "Gold003（仅限选择“继续资助”后解锁）",
+      "note": "如果玩家选择暂缓投资，本事件不会结束，以后仍可能再次出现，直到玩家真正决定继续投资。"
+    },
+    {
+      "id": "Gold003",
+      "type": "goldLine",
+      "title": "天使投资人Ⅲ",
+      "body": "你收到了成果汇报的邀请函。同时，孩孩子们希望你能带走一份属于他们努力的证明。",
+      "trigger": {
+        "id": "Gold003",
+        "requiresCompleted": "Gold002",
+        "requiresIncomplete": "Gold003",
+        "minDaysAfterGold002": 7
+      },
+      "options": [
+        {
+          "label": "混合动力小帆船（的罗盘）",
+          "resultText": "谁来了都会惊讶的成果！虽然不精于操作，让你们废了好大功夫才返航，但毫无疑问，这是让人心情畅快的一天。",
+          "effects": {
+            "completeGoldEvent": "Gold003",
+            "item": {
+              "name": "给投资人的回礼",
+              "amount": 1
+            }
+          },
+          "effectText": "获得 给投资人的回礼x1（你迫不及待想展示给奈费勒看了）"
+        },
+        {
+          "label": "微缩模型",
+          "resultText": "谁来了都会惊讶的成果！虽然不精于操作，让你们废了好大功夫才返航，但毫无疑问，这是让人心情畅快的一天。",
+          "effects": {
+            "completeGoldEvent": "Gold003",
+            "item": {
+              "name": "给投资人的回礼",
+              "amount": 1
+            }
+          },
+          "effectText": "获得 给投资人的回礼x1（你迫不及待想展示给奈费勒看了）"
+        }
+      ],
+      "rewards": ["获得 给投资人的回礼x1（你迫不及待想展示给奈费勒看了）"],
+      "image": ""
     }
   ]
 }
