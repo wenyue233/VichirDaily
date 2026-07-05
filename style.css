@@ -7,6 +7,16 @@
 @font-face {
   font-family: "VichirUI";
   src: url("assets/fonts/ui.otf") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "VichirUI";
+  src: url("assets/fonts/ui.otf") format("opentype");
+  font-style: normal;
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -60,6 +70,7 @@ body {
 
 button,
 [role="button"] {
+  font-family: var(--font-ui);
   cursor: url("assets/cursor/cursor.png") 6 2, pointer;
 }
 
@@ -274,7 +285,7 @@ body.mode-pending .ledger {
   min-height: 34px;
   padding: 7px 10px;
   color: var(--ink);
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   border: 1px solid rgba(120, 147, 154, 0.20);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.56);
@@ -930,6 +941,7 @@ dd {
 
 .event-options button {
   min-height: 38px;
+  font-family: var(--font-ui);
   border: 1px solid rgba(120, 147, 154, 0.20);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.48);
@@ -1032,7 +1044,7 @@ dd {
 .shop-title-row p {
   margin: 0;
   color: rgba(251, 245, 232, 0.82);
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   font-size: 16px;
 }
 
