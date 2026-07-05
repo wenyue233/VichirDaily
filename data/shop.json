@@ -1,0 +1,56 @@
+[
+  {
+    "id": "veil_blue",
+    "name": "海蓝面纱",
+    "price": 8,
+    "description": "海蓝色的轻薄面纱，垂落时像一小片安静的潮水。",
+    "image": "assets/items/item_veil_blue.png",
+    "useIn": "sultan_reward",
+    "availableIn": ["normal", "evil"]
+  },
+  {
+    "id": "lip_piercing_formal",
+    "name": "庄重唇钉",
+    "price": 6,
+    "description": "细小而克制的唇饰，在仪典场合也不会显得轻浮。",
+    "image": "assets/items/item_lip_piercing.png",
+    "useIn": "sultan_reward",
+    "availableIn": ["normal", "evil"]
+  },
+  {
+    "id": "body_chain_luxury",
+    "name": "华丽身体链",
+    "price": 14,
+    "description": "金色链饰贴合衣袍纹路，行走时会泛起细碎的光。",
+    "image": "assets/items/item_body_chain.png",
+    "useIn": "sultan_reward",
+    "availableIn": ["normal", "evil"]
+  },
+  {
+    "id": "sapphire",
+    "name": "蓝宝石",
+    "price": 10,
+    "description": "从原石中切割出来的大块蓝宝石，你知道它应属于谁。",
+    "image": "assets/items/item_sapphire.png",
+    "useIn": "sultan_reward",
+    "availableIn": ["normal", "evil"]
+  },
+  {
+    "id": "nafele_necklace",
+    "name": "奈费勒的项链？",
+    "price": 12,
+    "description": "不，它不应该出现在这个结局。",
+    "image": "assets/items/item_nafele_necklace.png",
+    "useIn": "sultan_reward",
+    "availableIn": ["evil"]
+  },
+  {
+    "id": "thorn_ring",
+    "name": "荆棘戒指",
+    "price": 9,
+    "description": "一件礼物，一个契约，一枚种子......?",
+    "image": "assets/items/item_thorn_ring.png",
+    "useIn": "sultan_reward",
+    "availableIn": ["evil"]
+  }
+]

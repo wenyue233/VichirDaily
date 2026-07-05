@@ -87,6 +87,7 @@
 
       <footer class="ledger-footer">
         <button id="historyButton" class="history-button ledger-control-button" type="button">历史日志</button>
+        <button id="shopButton" class="ledger-control-button" type="button">商店</button>
         <button id="saveButton" class="ledger-control-button" type="button">保存游戏</button>
         <button id="clearSaveButton" class="ledger-control-button ledger-control-button-ghost" type="button">清除存档</button>
       </footer>
@@ -154,6 +155,22 @@
       <h2 id="dayEndTitle">日终结算</h2>
       <div id="dayEndBody" class="day-end-body"></div>
       <button id="nextDayButton" class="event-confirm-button" type="button">进入下一天</button>
+    </section>
+  </div>
+
+  <div id="shopModal" class="shop-modal" role="dialog" aria-modal="true" aria-labelledby="shopTitle" hidden>
+    <div class="shop-backdrop"></div>
+    <section class="shop-window">
+      <div class="shop-header" aria-hidden="true"></div>
+      <div class="shop-title-row">
+        <h2 id="shopTitle">商店</h2>
+        <p>挑选你需要的物品吧。</p>
+      </div>
+      <div id="shopGrid" class="shop-grid"></div>
+      <footer class="shop-footer">
+        <p class="shop-gold">当前金币：<span id="shopGoldText">0</span></p>
+        <button id="shopCloseButton" class="ledger-control-button" type="button">关闭</button>
+      </footer>
     </section>
   </div>
 

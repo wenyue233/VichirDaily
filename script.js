@@ -4,6 +4,7 @@ const SCRIPT_VERSION = "2026.06.25-compat-1";
 const SAVE_VERSION = 2;
 const MAX_ACTION_POINTS = 3;
 const EVENT_DATA_URL = "data/events.json";
+const SHOP_DATA_URL = "data/shop.json";
 const STAT_LABELS = {
   diligence: "勤政",
   vision: "灵视",
@@ -56,6 +57,63 @@ const actions = [
     id: "estate",
     name: "治理家业",
     description: "金币 +1",
+  },
+];
+
+const DEFAULT_SHOP_DATA = [
+  {
+    id: "veil_blue",
+    name: "海蓝面纱",
+    price: 8,
+    description: "海蓝色的轻薄面纱，垂落时像一小片安静的潮水。",
+    image: "assets/items/item_veil_blue.png",
+    useIn: "sultan_reward",
+    availableIn: ["normal", "evil"],
+  },
+  {
+    id: "lip_piercing_formal",
+    name: "庄重唇钉",
+    price: 6,
+    description: "细小而克制的唇饰，在仪典场合也不会显得轻浮。",
+    image: "assets/items/item_lip_piercing.png",
+    useIn: "sultan_reward",
+    availableIn: ["normal", "evil"],
+  },
+  {
+    id: "body_chain_luxury",
+    name: "华丽身体链",
+    price: 14,
+    description: "金色链饰贴合衣袍纹路，行走时会泛起细碎的光。",
+    image: "assets/items/item_body_chain.png",
+    useIn: "sultan_reward",
+    availableIn: ["normal", "evil"],
+  },
+  {
+    id: "sapphire",
+    name: "蓝宝石",
+    price: 10,
+    description: "从原石中切割出来的大块蓝宝石，你知道它应属于谁。",
+    image: "assets/items/item_sapphire.png",
+    useIn: "sultan_reward",
+    availableIn: ["normal", "evil"],
+  },
+  {
+    id: "nafele_necklace",
+    name: "奈费勒的项链？",
+    price: 12,
+    description: "不，它不应该出现在这个结局。",
+    image: "assets/items/item_nafele_necklace.png",
+    useIn: "sultan_reward",
+    availableIn: ["evil"],
+  },
+  {
+    id: "thorn_ring",
+    name: "荆棘戒指",
+    price: 9,
+    description: "一件礼物，一个契约，一枚种子......?",
+    image: "assets/items/item_thorn_ring.png",
+    useIn: "sultan_reward",
+    availableIn: ["evil"],
   },
 ];
 
@@ -449,6 +507,7 @@ let selectedUiMode = "";
 let modalQueue = [];
 let activeModalEvent = null;
 let activeModalResultMode = false;
+let shopItems = [];
 let eventDataSource = "unloaded";
 let diligenceButtonBound = false;
 
@@ -464,6 +523,7 @@ const elements = {
   todayLog: document.getElementById("todayLog"),
   actionList: document.getElementById("actionList"),
   historyButton: document.getElementById("historyButton"),
+  shopButton: document.getElementById("shopButton"),
   historyPanel: document.getElementById("historyPanel"),
   historyList: document.getElementById("historyList"),
   eventModal: document.getElementById("eventModal"),
@@ -485,6 +545,10 @@ const elements = {
   dayEndTitle: document.getElementById("dayEndTitle"),
   dayEndBody: document.getElementById("dayEndBody"),
   nextDayButton: document.getElementById("nextDayButton"),
+  shopModal: document.getElementById("shopModal"),
+  shopGrid: document.getElementById("shopGrid"),
+  shopGoldText: document.getElementById("shopGoldText"),
+  shopCloseButton: document.getElementById("shopCloseButton"),
   devToggleButton: document.getElementById("devToggleButton"),
   devPanel: document.getElementById("devPanel"),
   devButtons: document.querySelectorAll("[data-dev-action]"),
@@ -494,7 +558,9 @@ init();
 
 async function init() {
   eventData = await loadEventData();
+  shopItems = await loadShopData();
   renderActions();
+  renderShop();
   bindUiEvents();
   setupEntryUi();
   render();
@@ -507,6 +573,8 @@ function bindUiEvents() {
     renderHistory();
   });
 
+  elements.shopButton.addEventListener("click", openShopModal);
+  elements.shopCloseButton.addEventListener("click", closeShopModal);
   elements.eventConfirmButton.addEventListener("click", closeEventModal);
   elements.eventOptions.addEventListener("click", handleEventOptionClick);
   elements.nextDayButton.addEventListener("click", enterNextDay);
@@ -788,6 +856,118 @@ function cloneEventData(data) {
   return normalizeEventData(JSON.parse(JSON.stringify(data)));
 }
 
+async function loadShopData() {
+  try {
+    const response = await fetch(SHOP_DATA_URL, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`商店数据读取失败：${response.status}`);
+    }
+
+    return normalizeShopData(await response.json());
+  } catch (error) {
+    console.warn("商店数据读取失败。请确认 data/shop.json 可被当前浏览器读取。", error);
+    return cloneShopData(DEFAULT_SHOP_DATA);
+  }
+}
+
+function normalizeShopData(data) {
+  const items = Array.isArray(data) ? data : data && Array.isArray(data.items) ? data.items : [];
+
+  return items
+    .filter((item) => item && item.id && item.name && item.image)
+    .map((item) => ({
+      id: String(item.id),
+      name: String(item.name),
+      description: item.description ? String(item.description) : "",
+      price: Math.max(0, Number(item.price || 0)),
+      image: String(item.image),
+      useIn: item.useIn ? String(item.useIn) : "",
+      availableIn: Array.isArray(item.availableIn)
+        ? item.availableIn.filter((mode) => UI_MODES[mode])
+        : ["normal", "evil"],
+    }));
+}
+
+function cloneShopData(data) {
+  return normalizeShopData(JSON.parse(JSON.stringify(data)));
+}
+
+function openShopModal() {
+  renderShop();
+  elements.shopModal.hidden = false;
+}
+
+function closeShopModal() {
+  elements.shopModal.hidden = true;
+}
+
+function renderShop() {
+  elements.shopGoldText.textContent = gameState.gold;
+  elements.shopGrid.innerHTML = "";
+
+  const visibleItems = shopItems.filter((item) => isShopItemAvailable(item));
+
+  if (visibleItems.length === 0) {
+    elements.shopGrid.innerHTML = '<p class="shop-empty">暂无商品。</p>';
+    return;
+  }
+
+  visibleItems.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "shop-item";
+
+    const image = document.createElement("img");
+    image.className = "shop-item-image";
+    image.src = item.image;
+    image.alt = item.name;
+
+    const name = document.createElement("h3");
+    name.textContent = item.name;
+
+    const description = document.createElement("p");
+    description.className = "shop-item-description";
+    description.textContent = item.description;
+
+    const price = document.createElement("p");
+    price.className = "shop-item-price";
+    price.textContent = `金币 ${item.price}`;
+
+    const button = document.createElement("button");
+    button.className = "shop-buy-button";
+    button.type = "button";
+    button.textContent = "购买";
+    button.addEventListener("click", () => buyShopItem(item));
+
+    card.appendChild(image);
+    card.appendChild(name);
+    card.appendChild(description);
+    card.appendChild(price);
+    card.appendChild(button);
+    elements.shopGrid.appendChild(card);
+  });
+}
+
+function isShopItemAvailable(item) {
+  const mode = selectedUiMode || loadUiMode() || "normal";
+
+  return item.availableIn.includes(mode);
+}
+
+function buyShopItem(item) {
+  if (gameState.gold < item.price) {
+    window.alert("金币不足");
+    return;
+  }
+
+  gameState.gold -= item.price;
+  addInventoryItem(item.id, 1);
+  addLog(`购买：${item.name}，金币 -${item.price}。`);
+  saveGame();
+  render();
+  renderShop();
+}
+
 function saveGame() {
   const modeLabel = selectedUiMode ? UI_MODES[selectedUiMode].label : gameState.mode;
   const saveData = {
@@ -852,6 +1032,10 @@ function render() {
   elements.goldText.textContent = gameState.gold;
   elements.madnessText.textContent = gameState.madness;
   elements.madnessRow.hidden = selectedUiMode !== "evil";
+
+  if (elements.shopGoldText) {
+    elements.shopGoldText.textContent = gameState.gold;
+  }
 
   renderTodayLog();
   renderActionButtons();
