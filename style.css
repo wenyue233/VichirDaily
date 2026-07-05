@@ -96,10 +96,18 @@ button,
 
 .ambient-background-normal {
   background-image: url("assets/background/background.normal.png");
+  background-image: image-set(
+    url("assets/background/background.normal.webp") type("image/webp"),
+    url("assets/background/background.normal.png") type("image/png")
+  );
 }
 
 .ambient-background-evil {
   background-image: url("assets/background/background.evil.png");
+  background-image: image-set(
+    url("assets/background/background.evil.webp") type("image/webp"),
+    url("assets/background/background.evil.png") type("image/png")
+  );
 }
 
 body.mode-normal .ambient-background-normal,
