@@ -1,0 +1,71 @@
+{
+  "characters": {
+    "arzu": {
+      "id": "arzu",
+      "name": "阿尔图",
+      "base": [
+        {
+          "id": "arzu_base_normal",
+          "name": "阿尔图基础立绘（通常）",
+          "modes": ["normal"],
+          "image": ""
+        },
+        {
+          "id": "arzu_base_evil",
+          "name": "阿尔图基础立绘（邪恶化身）",
+          "modes": ["evil"],
+          "image": ""
+        }
+      ],
+      "hair": [
+        {
+          "id": "arzu_hair_short",
+          "name": "短发",
+          "defaultUnlocked": true,
+          "defaultEquipped": true,
+          "image": ""
+        },
+        {
+          "id": "arzu_hair_long",
+          "name": "长发",
+          "defaultUnlocked": false,
+          "defaultEquipped": false,
+          "image": ""
+        }
+      ],
+      "costume": [],
+      "accessories": []
+    },
+    "nawfal": {
+      "id": "nawfal",
+      "name": "奈费勒",
+      "base": [
+        {
+          "id": "nawfal_base_default",
+          "name": "奈费勒基础立绘",
+          "modes": ["all"],
+          "image": ""
+        }
+      ],
+      "hair": [
+        {
+          "id": "nawfal_hair_short",
+          "name": "短发",
+          "defaultUnlocked": true,
+          "defaultEquipped": true,
+          "image": ""
+        },
+        {
+          "id": "nawfal_hair_long",
+          "name": "长发",
+          "defaultUnlocked": false,
+          "defaultEquipped": false,
+          "image": ""
+        }
+      ],
+      "costume": [],
+      "accessories": []
+    }
+  },
+  "accessorySlots": ["veil", "face", "neck", "body", "hand"]
+}

@@ -92,6 +92,7 @@
       <footer class="ledger-footer">
         <button id="historyButton" class="history-button ledger-control-button" type="button">历史日志</button>
         <button id="shopButton" class="ledger-control-button" type="button">商店</button>
+        <button id="appearanceButton" class="ledger-control-button" type="button">装扮</button>
         <button id="saveButton" class="ledger-control-button" type="button">保存游戏</button>
         <button id="clearSaveButton" class="ledger-control-button ledger-control-button-ghost" type="button">清除存档</button>
       </footer>
@@ -175,6 +176,21 @@
         <p class="shop-gold">当前金币：<span id="shopGoldText">0</span></p>
         <button id="shopCloseButton" class="ledger-control-button" type="button">关闭</button>
       </footer>
+    </section>
+  </div>
+
+  <div id="appearanceModal" class="appearance-modal" role="dialog" aria-modal="true" aria-labelledby="appearanceTitle" hidden>
+    <div class="appearance-backdrop"></div>
+    <section class="appearance-window">
+      <header class="appearance-header">
+        <div>
+          <p class="appearance-kicker">宫廷衣橱</p>
+          <h2 id="appearanceTitle">装扮</h2>
+        </div>
+        <button id="appearanceCloseButton" class="ledger-control-button ledger-control-button-ghost" type="button">关闭</button>
+      </header>
+      <nav id="appearanceTabs" class="appearance-tabs" aria-label="切换角色"></nav>
+      <div id="appearanceContent" class="appearance-content"></div>
     </section>
   </div>
 

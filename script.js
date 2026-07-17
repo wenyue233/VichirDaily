@@ -5,6 +5,7 @@ const SAVE_VERSION = 2;
 const MAX_ACTION_POINTS = 3;
 const EVENT_DATA_URL = "data/events.json";
 const SHOP_DATA_URL = "data/shop.json";
+const APPEARANCE_DATA_URL = "data/appearance.json";
 const STAT_LABELS = {
   diligence: "勤政",
   vision: "灵视",
@@ -19,6 +20,9 @@ const UI_MODES = {
     label: "邪恶化身模式",
   },
 };
+
+const APPEARANCE_CHARACTER_IDS = ["arzu", "nawfal"];
+const APPEARANCE_ACCESSORY_SLOTS = ["veil", "face", "neck", "body", "hand"];
 
 const defaultState = {
   day: 1,
@@ -40,6 +44,8 @@ const defaultState = {
     gold002CompletedDay: null,
   },
   inventory: {},
+  unlockedAppearance: {},
+  equippedAppearance: {},
 };
 
 const actions = [
@@ -68,6 +74,8 @@ const DEFAULT_SHOP_DATA = [
     description: "海蓝色的轻薄面纱，垂落时像一小片安静的潮水。",
     image: "assets/items/item_veil_blue.png",
     useIn: "sultan_reward",
+    slot: "",
+    equipTargets: [],
     availableIn: ["normal", "evil"],
   },
   {
@@ -77,6 +85,8 @@ const DEFAULT_SHOP_DATA = [
     description: "细小而克制的唇饰，在仪典场合也不会显得轻浮。",
     image: "assets/items/item_lip_piercing.png",
     useIn: "sultan_reward",
+    slot: "",
+    equipTargets: [],
     availableIn: ["normal", "evil"],
   },
   {
@@ -86,6 +96,8 @@ const DEFAULT_SHOP_DATA = [
     description: "金色链饰贴合衣袍纹路，行走时会泛起细碎的光。",
     image: "assets/items/item_body_chain.png",
     useIn: "sultan_reward",
+    slot: "",
+    equipTargets: [],
     availableIn: ["normal", "evil"],
   },
   {
@@ -95,6 +107,8 @@ const DEFAULT_SHOP_DATA = [
     description: "从原石中切割出来的大块蓝宝石，你知道它应属于谁。",
     image: "assets/items/item_sapphire.png",
     useIn: "sultan_reward",
+    slot: "",
+    equipTargets: [],
     availableIn: ["normal", "evil"],
   },
   {
@@ -104,6 +118,8 @@ const DEFAULT_SHOP_DATA = [
     description: "不，它不应该出现在这个结局。",
     image: "assets/items/item_nafele_necklace.png",
     useIn: "sultan_reward",
+    slot: "",
+    equipTargets: [],
     availableIn: ["evil"],
   },
   {
@@ -113,9 +129,83 @@ const DEFAULT_SHOP_DATA = [
     description: "一件礼物，一个契约，一枚种子......?",
     image: "assets/items/item_thorn_ring.png",
     useIn: "sultan_reward",
+    slot: "",
+    equipTargets: [],
     availableIn: ["evil"],
   },
 ];
+
+const DEFAULT_APPEARANCE_DATA = {
+  characters: {
+    arzu: {
+      id: "arzu",
+      name: "阿尔图",
+      base: [
+        {
+          id: "arzu_base_normal",
+          name: "阿尔图基础立绘（通常）",
+          modes: ["normal"],
+          image: "",
+        },
+        {
+          id: "arzu_base_evil",
+          name: "阿尔图基础立绘（邪恶化身）",
+          modes: ["evil"],
+          image: "",
+        },
+      ],
+      hair: [
+        {
+          id: "arzu_hair_short",
+          name: "短发",
+          defaultUnlocked: true,
+          defaultEquipped: true,
+          image: "",
+        },
+        {
+          id: "arzu_hair_long",
+          name: "长发",
+          defaultUnlocked: false,
+          defaultEquipped: false,
+          image: "",
+        },
+      ],
+      costume: [],
+      accessories: [],
+    },
+    nawfal: {
+      id: "nawfal",
+      name: "奈费勒",
+      base: [
+        {
+          id: "nawfal_base_default",
+          name: "奈费勒基础立绘",
+          modes: ["all"],
+          image: "",
+        },
+      ],
+      hair: [
+        {
+          id: "nawfal_hair_short",
+          name: "短发",
+          defaultUnlocked: true,
+          defaultEquipped: true,
+          image: "",
+        },
+        {
+          id: "nawfal_hair_long",
+          name: "长发",
+          defaultUnlocked: false,
+          defaultEquipped: false,
+          image: "",
+        },
+      ],
+      costume: [],
+      accessories: [],
+    },
+  },
+  accessorySlots: APPEARANCE_ACCESSORY_SLOTS,
+};
 
 const DEFAULT_EVENT_DATA = {
   wanderTables: [
@@ -497,6 +587,7 @@ const DEFAULT_EVENT_DATA = {
 };
 
 let savedGameAvailable = hasSavedGame();
+let appearanceData = cloneAppearanceData(DEFAULT_APPEARANCE_DATA);
 let gameState = createDefaultState();
 let eventData = {
   wanderTables: [],
@@ -510,6 +601,7 @@ let activeModalResultMode = false;
 let shopItems = [];
 let eventDataSource = "unloaded";
 let diligenceButtonBound = false;
+let selectedAppearanceCharacter = "arzu";
 
 const elements = {
   dayText: document.getElementById("dayText"),
@@ -524,6 +616,7 @@ const elements = {
   actionList: document.getElementById("actionList"),
   historyButton: document.getElementById("historyButton"),
   shopButton: document.getElementById("shopButton"),
+  appearanceButton: document.getElementById("appearanceButton"),
   historyPanel: document.getElementById("historyPanel"),
   historyList: document.getElementById("historyList"),
   eventModal: document.getElementById("eventModal"),
@@ -549,6 +642,10 @@ const elements = {
   shopGrid: document.getElementById("shopGrid"),
   shopGoldText: document.getElementById("shopGoldText"),
   shopCloseButton: document.getElementById("shopCloseButton"),
+  appearanceModal: document.getElementById("appearanceModal"),
+  appearanceTabs: document.getElementById("appearanceTabs"),
+  appearanceContent: document.getElementById("appearanceContent"),
+  appearanceCloseButton: document.getElementById("appearanceCloseButton"),
   devToggleButton: document.getElementById("devToggleButton"),
   devPanel: document.getElementById("devPanel"),
   devButtons: document.querySelectorAll("[data-dev-action]"),
@@ -559,8 +656,11 @@ init();
 async function init() {
   eventData = await loadEventData();
   shopItems = await loadShopData();
+  appearanceData = await loadAppearanceData();
+  gameState = normalizeGameState(gameState);
   renderActions();
   renderShop();
+  renderAppearance();
   bindUiEvents();
   setupEntryUi();
   render();
@@ -575,6 +675,10 @@ function bindUiEvents() {
 
   elements.shopButton.addEventListener("click", openShopModal);
   elements.shopCloseButton.addEventListener("click", closeShopModal);
+  elements.appearanceButton.addEventListener("click", openAppearanceModal);
+  elements.appearanceCloseButton.addEventListener("click", closeAppearanceModal);
+  elements.appearanceTabs.addEventListener("click", handleAppearanceTabClick);
+  elements.appearanceContent.addEventListener("click", handleAppearanceChoiceClick);
   elements.eventConfirmButton.addEventListener("click", closeEventModal);
   elements.eventOptions.addEventListener("click", handleEventOptionClick);
   elements.nextDayButton.addEventListener("click", enterNextDay);
@@ -757,6 +861,8 @@ function createDefaultState() {
       gold002CompletedDay: null,
     },
     inventory: {},
+    unlockedAppearance: createDefaultUnlockedAppearance(),
+    equippedAppearance: createDefaultEquippedAppearance(),
   });
 }
 
@@ -808,6 +914,8 @@ function normalizeGameState(state = {}) {
     dayEndPending: Boolean(state.dayEndPending),
     goldLine: normalizeGoldLineState(state.goldLine),
     inventory: state.inventory && typeof state.inventory === "object" ? state.inventory : {},
+    unlockedAppearance: normalizeUnlockedAppearance(state.unlockedAppearance),
+    equippedAppearance: normalizeEquippedAppearance(state.equippedAppearance, state.unlockedAppearance),
   });
 }
 
@@ -816,6 +924,105 @@ function normalizeGoldLineState(goldLine = {}) {
     completed: Array.isArray(goldLine.completed) ? goldLine.completed : [],
     gold002CompletedDay: Number.isFinite(Number(goldLine.gold002CompletedDay)) ? Number(goldLine.gold002CompletedDay) : null,
   };
+}
+
+function getAppearanceCharacters() {
+  return appearanceData && appearanceData.characters ? appearanceData.characters : DEFAULT_APPEARANCE_DATA.characters;
+}
+
+function getAppearanceCharacter(characterId) {
+  return getAppearanceCharacters()[characterId] || null;
+}
+
+function getAppearanceItems(characterId, category) {
+  const character = getAppearanceCharacter(characterId);
+
+  return character && Array.isArray(character[category]) ? character[category] : [];
+}
+
+function createEmptyAccessorySlots() {
+  return APPEARANCE_ACCESSORY_SLOTS.reduce((slots, slot) => {
+    slots[slot] = "";
+    return slots;
+  }, {});
+}
+
+function createDefaultUnlockedAppearance() {
+  return APPEARANCE_CHARACTER_IDS.reduce((result, characterId) => {
+    result[characterId] = {
+      hair: getAppearanceItems(characterId, "hair")
+        .filter((item) => item.defaultUnlocked)
+        .map((item) => item.id),
+      costume: getAppearanceItems(characterId, "costume")
+        .filter((item) => item.defaultUnlocked)
+        .map((item) => item.id),
+      accessories: getAppearanceItems(characterId, "accessories")
+        .filter((item) => item.defaultUnlocked)
+        .map((item) => item.id),
+    };
+    return result;
+  }, {});
+}
+
+function createDefaultEquippedAppearance() {
+  return APPEARANCE_CHARACTER_IDS.reduce((result, characterId) => {
+    const defaultHair = getAppearanceItems(characterId, "hair").find((item) => item.defaultEquipped);
+    const defaultCostume = getAppearanceItems(characterId, "costume").find((item) => item.defaultEquipped);
+
+    result[characterId] = {
+      hair: defaultHair ? defaultHair.id : "",
+      costume: defaultCostume ? defaultCostume.id : "",
+      accessories: createEmptyAccessorySlots(),
+    };
+    return result;
+  }, {});
+}
+
+function normalizeUnlockedAppearance(saved = {}) {
+  const defaults = createDefaultUnlockedAppearance();
+
+  APPEARANCE_CHARACTER_IDS.forEach((characterId) => {
+    const savedCharacter = saved && saved[characterId] && typeof saved[characterId] === "object" ? saved[characterId] : {};
+
+    ["hair", "costume", "accessories"].forEach((category) => {
+      const validIds = getAppearanceItems(characterId, category).map((item) => item.id);
+      const savedIds = Array.isArray(savedCharacter[category]) ? savedCharacter[category] : [];
+      defaults[characterId][category] = Array.from(
+        new Set(defaults[characterId][category].concat(savedIds.filter((id) => validIds.includes(id))))
+      );
+    });
+  });
+
+  return defaults;
+}
+
+function normalizeEquippedAppearance(saved = {}, savedUnlocked = {}) {
+  const unlocked = normalizeUnlockedAppearance(savedUnlocked);
+  const defaults = createDefaultEquippedAppearance();
+
+  APPEARANCE_CHARACTER_IDS.forEach((characterId) => {
+    const savedCharacter = saved && saved[characterId] && typeof saved[characterId] === "object" ? saved[characterId] : {};
+
+    if (unlocked[characterId].hair.includes(savedCharacter.hair)) {
+      defaults[characterId].hair = savedCharacter.hair;
+    }
+
+    if (unlocked[characterId].costume.includes(savedCharacter.costume)) {
+      defaults[characterId].costume = savedCharacter.costume;
+    }
+
+    const savedAccessories =
+      savedCharacter.accessories && typeof savedCharacter.accessories === "object" ? savedCharacter.accessories : {};
+
+    APPEARANCE_ACCESSORY_SLOTS.forEach((slot) => {
+      const appearanceId = savedAccessories[slot];
+      if (appearanceId && unlocked[characterId].accessories.includes(appearanceId)) {
+        defaults[characterId].accessories[slot] = appearanceId;
+      }
+    });
+  });
+
+  return defaults;
 }
 
 function loadUiMode() {
@@ -856,6 +1063,69 @@ function cloneEventData(data) {
   return normalizeEventData(JSON.parse(JSON.stringify(data)));
 }
 
+// 正式编辑角色装扮时优先修改 data/appearance.json。
+// 直接双击 index.html 时，部分浏览器会阻止 fetch 读取本地 JSON；失败时使用这里的 fallback。
+async function loadAppearanceData() {
+  try {
+    const response = await fetch(APPEARANCE_DATA_URL, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`装扮数据读取失败：${response.status}`);
+    }
+
+    return normalizeAppearanceData(await response.json());
+  } catch (error) {
+    console.warn("装扮数据读取失败，请确认 data/appearance.json 可被当前浏览器读取。", error);
+    return cloneAppearanceData(DEFAULT_APPEARANCE_DATA);
+  }
+}
+
+function normalizeAppearanceData(data) {
+  const characters = data && data.characters && typeof data.characters === "object" ? data.characters : {};
+  const normalized = {
+    characters: {},
+    accessorySlots: APPEARANCE_ACCESSORY_SLOTS,
+  };
+
+  APPEARANCE_CHARACTER_IDS.forEach((characterId) => {
+    const fallback = DEFAULT_APPEARANCE_DATA.characters[characterId];
+    const source = characters[characterId] || fallback;
+
+    normalized.characters[characterId] = {
+      id: characterId,
+      name: source.name || fallback.name,
+      base: normalizeAppearanceItems(source.base || fallback.base),
+      hair: normalizeAppearanceItems(source.hair || fallback.hair),
+      costume: normalizeAppearanceItems(source.costume || fallback.costume),
+      accessories: normalizeAppearanceItems(source.accessories || fallback.accessories),
+    };
+  });
+
+  return normalized;
+}
+
+function normalizeAppearanceItems(items = []) {
+  return Array.isArray(items)
+    ? items
+        .filter((item) => item && item.id)
+        .map((item) => ({
+          id: String(item.id),
+          name: item.name ? String(item.name) : String(item.id),
+          modes: Array.isArray(item.modes) ? item.modes.map(String) : [],
+          slot: item.slot ? String(item.slot) : "",
+          image: item.image ? String(item.image) : "",
+          inventoryItemId: item.inventoryItemId ? String(item.inventoryItemId) : "",
+          equipTargets: Array.isArray(item.equipTargets) ? item.equipTargets.filter((id) => APPEARANCE_CHARACTER_IDS.includes(id)) : [],
+          defaultUnlocked: Boolean(item.defaultUnlocked),
+          defaultEquipped: Boolean(item.defaultEquipped),
+        }))
+    : [];
+}
+
+function cloneAppearanceData(data) {
+  return normalizeAppearanceData(JSON.parse(JSON.stringify(data)));
+}
+
 async function loadShopData() {
   try {
     const response = await fetch(SHOP_DATA_URL, { cache: "no-store" });
@@ -883,6 +1153,8 @@ function normalizeShopData(data) {
       price: Math.max(0, Number(item.price || 0)),
       image: String(item.image),
       useIn: item.useIn ? String(item.useIn) : "",
+      slot: item.slot ? String(item.slot) : "",
+      equipTargets: Array.isArray(item.equipTargets) ? item.equipTargets.filter((id) => APPEARANCE_CHARACTER_IDS.includes(id)) : [],
       availableIn: Array.isArray(item.availableIn)
         ? item.availableIn.filter((mode) => UI_MODES[mode])
         : ["normal", "evil"],
@@ -900,6 +1172,293 @@ function openShopModal() {
 
 function closeShopModal() {
   elements.shopModal.hidden = true;
+}
+
+function openAppearanceModal() {
+  selectedAppearanceCharacter = selectedAppearanceCharacter || "arzu";
+  renderAppearance();
+  elements.appearanceModal.hidden = false;
+}
+
+function closeAppearanceModal() {
+  elements.appearanceModal.hidden = true;
+}
+
+function handleAppearanceTabClick(event) {
+  const button = event.target.closest("[data-appearance-character]");
+
+  if (!button) {
+    return;
+  }
+
+  selectedAppearanceCharacter = button.dataset.appearanceCharacter;
+  renderAppearance();
+}
+
+function handleAppearanceChoiceClick(event) {
+  const button = event.target.closest("[data-appearance-choice]");
+
+  if (!button) {
+    return;
+  }
+
+  const category = button.dataset.appearanceCategory;
+  const appearanceId = button.dataset.appearanceChoice;
+
+  equipAppearance(selectedAppearanceCharacter, category, appearanceId, {
+    slot: button.dataset.appearanceSlot || "",
+  });
+}
+
+function renderAppearance() {
+  if (!elements.appearanceTabs || !elements.appearanceContent) {
+    return;
+  }
+
+  elements.appearanceTabs.innerHTML = APPEARANCE_CHARACTER_IDS.map((characterId) => {
+    const character = getAppearanceCharacter(characterId);
+    const active = selectedAppearanceCharacter === characterId ? " is-active" : "";
+    return `<button class="appearance-tab${active}" type="button" data-appearance-character="${characterId}">${escapeHtml(character.name)}</button>`;
+  }).join("");
+
+  const character = getAppearanceCharacter(selectedAppearanceCharacter);
+  const currentMode = selectedUiMode || loadUiMode() || "normal";
+  const base = getCharacterBase(selectedAppearanceCharacter, currentMode);
+  const renderState = getCharacterRenderState(selectedAppearanceCharacter, currentMode);
+
+  elements.appearanceContent.innerHTML = `
+    <section class="appearance-current">
+      <h3>${escapeHtml(character.name)}</h3>
+      <p>当前基础立绘：${escapeHtml(base || "未设置")}</p>
+      <p>当前发型：${escapeHtml(renderState.hair || "未装备")}</p>
+    </section>
+    ${renderAppearanceCategory(selectedAppearanceCharacter, "hair", "发型")}
+    ${renderAppearanceCategory(selectedAppearanceCharacter, "costume", "服装")}
+    ${renderAppearanceAccessories(selectedAppearanceCharacter)}
+  `;
+}
+
+function renderAppearanceCategory(characterId, category, title) {
+  const items = getAppearanceItems(characterId, category);
+
+  if (items.length === 0) {
+    return `
+      <section class="appearance-section">
+        <h3>${escapeHtml(title)}</h3>
+        <p class="appearance-empty">暂无可选项目。</p>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="appearance-section">
+      <h3>${escapeHtml(title)}</h3>
+      <div class="appearance-choice-list">
+        ${items.map((item) => renderAppearanceChoice(characterId, category, item)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderAppearanceAccessories(characterId) {
+  const items = getAccessoryAppearanceItems(characterId);
+
+  if (items.length === 0) {
+    return `
+      <section class="appearance-section">
+        <h3>饰品</h3>
+        <p class="appearance-empty">暂无可装备饰品。</p>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="appearance-section">
+      <h3>饰品</h3>
+      ${APPEARANCE_ACCESSORY_SLOTS.map((slot) => {
+        const slotItems = items.filter((item) => item.slot === slot);
+        return `
+          <div class="appearance-slot">
+            <h4>${escapeHtml(slot)}</h4>
+            <div class="appearance-choice-list">
+              ${renderUnequipAccessoryChoice(characterId, slot)}
+              ${slotItems.map((item) => renderAppearanceChoice(characterId, "accessories", item)).join("")}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </section>
+  `;
+}
+
+function renderUnequipAccessoryChoice(characterId, slot) {
+  const current = getEquippedAppearance(characterId).accessories[slot];
+  const active = current ? "" : " is-equipped";
+
+  return `<button class="appearance-choice${active}" type="button" data-appearance-category="accessories" data-appearance-choice="" data-appearance-slot="${slot}">不装备</button>`;
+}
+
+function renderAppearanceChoice(characterId, category, item) {
+  const unlocked = isAppearanceUnlocked(characterId, category, item.id);
+  const equipped = isAppearanceEquipped(characterId, category, item);
+  const lockedClass = unlocked ? "" : " is-locked";
+  const equippedClass = equipped ? " is-equipped" : "";
+  const disabled = unlocked ? "" : " disabled";
+  const status = equipped ? "已装备" : unlocked ? "可装备" : "未解锁";
+
+  return `
+    <button class="appearance-choice${lockedClass}${equippedClass}" type="button" data-appearance-category="${category}" data-appearance-choice="${escapeHtml(item.id)}"${disabled}>
+      <span>${escapeHtml(item.name)}</span>
+      <small>${escapeHtml(status)}</small>
+    </button>
+  `;
+}
+
+function getAccessoryAppearanceItems(characterId) {
+  const dataItems = getAppearanceItems(characterId, "accessories");
+  const shopAccessoryItems = shopItems
+    .filter((item) => item.slot && item.equipTargets.includes(characterId))
+    .map((item) => ({
+      id: item.id,
+      name: item.name,
+      slot: item.slot,
+      image: item.image,
+      inventoryItemId: item.id,
+      equipTargets: item.equipTargets,
+    }));
+
+  return dataItems.concat(shopAccessoryItems);
+}
+
+function getAppearanceItem(characterId, category, appearanceId) {
+  const source = category === "accessories" ? getAccessoryAppearanceItems(characterId) : getAppearanceItems(characterId, category);
+
+  return source.find((item) => item.id === appearanceId) || null;
+}
+
+function isAppearanceUnlocked(characterId, category, appearanceId) {
+  const unlocked = gameState.unlockedAppearance && gameState.unlockedAppearance[characterId];
+
+  if (!unlocked || !appearanceId) {
+    return false;
+  }
+
+  if (category === "accessories") {
+    const item = getAppearanceItem(characterId, category, appearanceId);
+    const inventoryId = item && item.inventoryItemId ? item.inventoryItemId : appearanceId;
+    return unlocked.accessories.includes(appearanceId) || Number(gameState.inventory[inventoryId] || 0) > 0;
+  }
+
+  return Array.isArray(unlocked[category]) && unlocked[category].includes(appearanceId);
+}
+
+function isAppearanceEquipped(characterId, category, item) {
+  const equipped = getEquippedAppearance(characterId);
+
+  if (category === "accessories") {
+    return item.slot && equipped.accessories[item.slot] === item.id;
+  }
+
+  return equipped[category] === item.id;
+}
+
+function unlockAppearance(characterId, appearanceId) {
+  const category = findAppearanceCategory(characterId, appearanceId);
+
+  if (!category) {
+    return false;
+  }
+
+  const unlocked = gameState.unlockedAppearance[characterId][category];
+
+  if (!unlocked.includes(appearanceId)) {
+    unlocked.push(appearanceId);
+    saveGame();
+    renderAppearance();
+  }
+
+  return true;
+}
+
+function equipAppearance(characterId, category, appearanceId, options = {}) {
+  if (!APPEARANCE_CHARACTER_IDS.includes(characterId)) {
+    return false;
+  }
+
+  if (category === "accessories" && !appearanceId) {
+    const slot = options.slot || "";
+    if (slot && gameState.equippedAppearance[characterId].accessories[slot] !== undefined) {
+      gameState.equippedAppearance[characterId].accessories[slot] = "";
+      saveGame();
+      renderAppearance();
+      return true;
+    }
+    return false;
+  }
+
+  const item = getAppearanceItem(characterId, category, appearanceId);
+
+  if (!item || !isAppearanceUnlocked(characterId, category, appearanceId)) {
+    return false;
+  }
+
+  if (category === "accessories") {
+    if (!item.slot || !APPEARANCE_ACCESSORY_SLOTS.includes(item.slot)) {
+      return false;
+    }
+
+    const inventoryId = item.inventoryItemId || item.id;
+    if (Number(gameState.inventory[inventoryId] || 0) <= 0 && !gameState.unlockedAppearance[characterId].accessories.includes(item.id)) {
+      return false;
+    }
+
+    gameState.equippedAppearance[characterId].accessories[item.slot] = item.id;
+  } else if (category === "hair" || category === "costume") {
+    gameState.equippedAppearance[characterId][category] = item.id;
+  } else {
+    return false;
+  }
+
+  saveGame();
+  renderAppearance();
+  return true;
+}
+
+function findAppearanceCategory(characterId, appearanceId) {
+  return ["hair", "costume", "accessories"].find((category) =>
+    getAppearanceItems(characterId, category).some((item) => item.id === appearanceId)
+  );
+}
+
+function getEquippedAppearance(characterId) {
+  const equipped = gameState.equippedAppearance && gameState.equippedAppearance[characterId];
+
+  return {
+    hair: equipped && equipped.hair ? equipped.hair : "",
+    costume: equipped && equipped.costume ? equipped.costume : "",
+    accessories: Object.assign(createEmptyAccessorySlots(), equipped && equipped.accessories ? equipped.accessories : {}),
+  };
+}
+
+function getCharacterBase(characterId, mode) {
+  const baseItems = getAppearanceItems(characterId, "base");
+  const currentMode = UI_MODES[mode] ? mode : "normal";
+  const matched = baseItems.find((item) => item.modes.includes(currentMode)) || baseItems.find((item) => item.modes.includes("all"));
+
+  return matched ? matched.id : "";
+}
+
+function getCharacterRenderState(characterId, mode) {
+  const equipped = getEquippedAppearance(characterId);
+
+  return {
+    characterId,
+    mode,
+    base: getCharacterBase(characterId, mode),
+    hair: equipped.hair,
+    costume: equipped.costume,
+    accessories: equipped.accessories,
+  };
 }
 
 function renderShop() {
@@ -1040,6 +1599,10 @@ function render() {
   renderTodayLog();
   renderActionButtons();
   renderDevVisibility();
+
+  if (elements.appearanceModal && !elements.appearanceModal.hidden) {
+    renderAppearance();
+  }
 
   if (!elements.historyPanel.hidden) {
     renderHistory();
@@ -1353,6 +1916,8 @@ function applyEffects(effects = {}) {
     gameState[key] += amount;
     recordStatChange(key, amount);
   });
+
+  applyAppearanceUnlockEffects(effects.unlockAppearance);
 }
 
 function applyOptionEffects(effects = {}) {
@@ -1377,6 +1942,22 @@ function applyOptionEffects(effects = {}) {
   if (effects.item && effects.item.name) {
     addInventoryItem(effects.item.name, effects.item.amount || 1);
   }
+
+  applyAppearanceUnlockEffects(effects.unlockAppearance);
+}
+
+function applyAppearanceUnlockEffects(unlockData) {
+  if (!unlockData) {
+    return;
+  }
+
+  const unlocks = Array.isArray(unlockData) ? unlockData : [unlockData];
+
+  unlocks.forEach((item) => {
+    if (item && item.characterId && item.appearanceId) {
+      unlockAppearance(item.characterId, item.appearanceId);
+    }
+  });
 }
 
 function completeGoldEvent(id) {
