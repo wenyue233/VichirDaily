@@ -1294,8 +1294,8 @@ function renderAppearance() {
     elements.appearanceContent.innerHTML = `
       <section class="appearance-current">
         <div class="appearance-preview" aria-label="${escapeHtml(character.name)} 当前装扮预览">
-          <img class="appearance-layer" data-appearance-layer="base" alt="基础立绘" decoding="async">
           <img class="appearance-layer" data-appearance-layer="hair" alt="发型" decoding="async">
+          <img class="appearance-layer" data-appearance-layer="base" alt="基础立绘" decoding="async">
           <img class="appearance-layer" data-appearance-layer="headwear" alt="头饰" decoding="async">
         </div>
         <div class="appearance-current-summary">

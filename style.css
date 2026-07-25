@@ -1300,6 +1300,18 @@ dd {
   animation: appearanceLayerFade 150ms ease;
 }
 
+.appearance-layer[data-appearance-layer="hair"] {
+  z-index: 1;
+}
+
+.appearance-layer[data-appearance-layer="base"] {
+  z-index: 2;
+}
+
+.appearance-layer[data-appearance-layer="headwear"] {
+  z-index: 3;
+}
+
 .appearance-current-summary {
   align-self: center;
   min-width: 0;
