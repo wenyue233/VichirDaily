@@ -1349,11 +1349,30 @@ function updateAppearanceLayer(layerName, item, label) {
   image.alt = label;
   if (image.getAttribute("src") !== nextSrc) {
     if (nextSrc) {
+      image.classList.add("is-changing");
+      image.onload = () => {
+        if (image.getAttribute("src") === nextSrc) {
+          restartAppearanceLayerFade(image);
+        }
+      };
+      image.onerror = () => {
+        if (image.getAttribute("src") === nextSrc) {
+          image.classList.remove("is-changing");
+        }
+      };
       image.src = nextSrc;
     } else {
       image.removeAttribute("src");
+      image.classList.remove("is-changing", "is-fading-in");
     }
   }
+}
+
+function restartAppearanceLayerFade(image) {
+  image.classList.remove("is-changing", "is-fading-in");
+  void image.offsetWidth;
+  image.classList.add("is-fading-in");
+  image.addEventListener("animationend", () => image.classList.remove("is-fading-in"), { once: true });
 }
 
 function updateAppearanceSummary(character, hairItem, headwearItem, renderState) {

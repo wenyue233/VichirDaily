@@ -1284,20 +1284,30 @@ dd {
   position: relative;
   align-self: end;
   width: min(420px, 100%);
-  height: min(620px, calc(100vh - 150px));
-  min-height: 520px;
+  height: clamp(620px, 72vh, 700px);
   margin-left: 26px;
+  overflow: hidden;
 }
 
 .appearance-layer {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 50%;
+  bottom: 0;
+  width: auto;
+  height: 96%;
+  max-width: none;
   object-fit: contain;
+  transform: translateX(-50%);
   opacity: 1;
-  transition: opacity 150ms ease;
-  animation: appearanceLayerFade 150ms ease;
+  transition: opacity 180ms ease;
+}
+
+.appearance-layer.is-changing {
+  opacity: 0;
+}
+
+.appearance-layer.is-fading-in {
+  animation: appearanceLayerFade 180ms ease;
 }
 
 .appearance-preview.portrait--short-hair .appearance-layer[data-appearance-layer="hair"] {
