@@ -1300,11 +1300,19 @@ dd {
   animation: appearanceLayerFade 150ms ease;
 }
 
-.appearance-layer[data-appearance-layer="hair"] {
+.appearance-preview.portrait--short-hair .appearance-layer[data-appearance-layer="hair"] {
   z-index: 1;
 }
 
-.appearance-layer[data-appearance-layer="base"] {
+.appearance-preview.portrait--short-hair .appearance-layer[data-appearance-layer="base"] {
+  z-index: 2;
+}
+
+.appearance-preview.portrait--long-hair .appearance-layer[data-appearance-layer="base"] {
+  z-index: 1;
+}
+
+.appearance-preview.portrait--long-hair .appearance-layer[data-appearance-layer="hair"] {
   z-index: 2;
 }
 

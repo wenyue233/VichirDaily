@@ -1321,8 +1321,20 @@ function renderAppearance() {
   updateAppearanceLayer("base", baseItem, "基础立绘");
   updateAppearanceLayer("hair", hairItem, "发型");
   updateAppearanceLayer("headwear", headwearItem, "头饰");
+  updateAppearanceHairLayerOrder(hairItem);
   updateAppearanceSummary(character, hairItem, headwearItem, renderState);
   updateAppearanceSections(selectedAppearanceCharacter);
+}
+
+function updateAppearanceHairLayerOrder(hairItem) {
+  const preview = elements.appearanceContent.querySelector(".appearance-preview");
+
+  if (!preview) {
+    return;
+  }
+
+  preview.classList.toggle("portrait--short-hair", Boolean(hairItem && hairItem.id === "hair_short"));
+  preview.classList.toggle("portrait--long-hair", Boolean(hairItem && hairItem.id === "hair_long"));
 }
 
 function updateAppearanceLayer(layerName, item, label) {
