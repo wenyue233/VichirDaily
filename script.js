@@ -625,6 +625,7 @@ const DEFAULT_EVENT_DATA = {
 
 let savedGameAvailable = hasSavedGame();
 let appearanceData = cloneAppearanceData(DEFAULT_APPEARANCE_DATA);
+let appearanceAssetsPreloaded = false;
 let gameState = createDefaultState();
 let eventData = {
   wanderTables: [],
@@ -639,6 +640,7 @@ let shopItems = [];
 let eventDataSource = "unloaded";
 let diligenceButtonBound = false;
 let selectedAppearanceCharacter = "arzu";
+const preloadedImageUrls = new Set();
 
 const elements = {
   dayText: document.getElementById("dayText"),
@@ -696,8 +698,6 @@ async function init() {
   appearanceData = await loadAppearanceData();
   gameState = normalizeGameState(gameState);
   renderActions();
-  renderShop();
-  renderAppearance();
   bindUiEvents();
   setupEntryUi();
   render();
@@ -1236,8 +1236,9 @@ function closeShopModal() {
 
 function openAppearanceModal() {
   selectedAppearanceCharacter = selectedAppearanceCharacter || "arzu";
-  renderAppearance();
   elements.appearanceModal.hidden = false;
+  renderAppearance();
+  preloadUnequippedAppearanceAssetsOnce();
 }
 
 function closeAppearanceModal() {
@@ -1288,39 +1289,156 @@ function renderAppearance() {
   const hairItem = getAppearanceItem(selectedAppearanceCharacter, "hair", renderState.hair);
   const headwearItem = getResolvedHeadwearItem(selectedAppearanceCharacter, currentMode);
 
-  elements.appearanceContent.innerHTML = `
-    <section class="appearance-current">
-      <div class="appearance-preview" aria-label="${escapeHtml(character.name)} 当前装扮预览">
-        ${renderAppearanceLayer(baseItem, "基础立绘")}
-        ${renderAppearanceLayer(hairItem, "发型")}
-        ${renderAppearanceLayer(headwearItem, "头饰")}
-      </div>
-      <div class="appearance-current-summary">
-        <h3>${escapeHtml(character.name)}</h3>
-        <dl class="appearance-summary-list">
-          <div>
-            <dt>发型</dt>
-            <dd>${escapeHtml(hairItem ? hairItem.name : renderState.hair || "未装备")}</dd>
-          </div>
-          <div>
-            <dt>头饰</dt>
-            <dd>${escapeHtml(headwearItem ? headwearItem.name : "未装备")}</dd>
-          </div>
-        </dl>
-      </div>
-    </section>
-    ${renderAppearanceCategory(selectedAppearanceCharacter, "hair", "发型")}
-    ${renderAppearanceCategory(selectedAppearanceCharacter, "costume", "服装")}
-    ${renderAppearanceAccessories(selectedAppearanceCharacter)}
-  `;
-}
-
-function renderAppearanceLayer(item, label) {
-  if (!item || !item.image) {
-    return "";
+  if (elements.appearanceContent.dataset.characterId !== selectedAppearanceCharacter) {
+    elements.appearanceContent.dataset.characterId = selectedAppearanceCharacter;
+    elements.appearanceContent.innerHTML = `
+      <section class="appearance-current">
+        <div class="appearance-preview" aria-label="${escapeHtml(character.name)} 当前装扮预览">
+          <img class="appearance-layer" data-appearance-layer="base" alt="基础立绘" decoding="async">
+          <img class="appearance-layer" data-appearance-layer="hair" alt="发型" decoding="async">
+          <img class="appearance-layer" data-appearance-layer="headwear" alt="头饰" decoding="async">
+        </div>
+        <div class="appearance-current-summary">
+          <h3></h3>
+          <dl class="appearance-summary-list">
+            <div>
+              <dt>发型</dt>
+              <dd data-appearance-summary="hair">未装备</dd>
+            </div>
+            <div>
+              <dt>头饰</dt>
+              <dd data-appearance-summary="headwear">未装备</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+      <div data-appearance-section="hair"></div>
+      <div data-appearance-section="costume"></div>
+      <div data-appearance-section="accessories"></div>
+    `;
   }
 
-  return `<img class="appearance-layer" src="${escapeHtml(item.image)}" alt="${escapeHtml(label)}">`;
+  updateAppearanceLayer("base", baseItem, "基础立绘");
+  updateAppearanceLayer("hair", hairItem, "发型");
+  updateAppearanceLayer("headwear", headwearItem, "头饰");
+  updateAppearanceSummary(character, hairItem, headwearItem, renderState);
+  updateAppearanceSections(selectedAppearanceCharacter);
+}
+
+function updateAppearanceLayer(layerName, item, label) {
+  const image = elements.appearanceContent.querySelector(`[data-appearance-layer="${layerName}"]`);
+
+  if (!image) {
+    return;
+  }
+
+  const nextSrc = item && item.image ? item.image : "";
+
+  image.alt = label;
+  if (image.getAttribute("src") !== nextSrc) {
+    if (nextSrc) {
+      image.src = nextSrc;
+    } else {
+      image.removeAttribute("src");
+    }
+  }
+}
+
+function updateAppearanceSummary(character, hairItem, headwearItem, renderState) {
+  const title = elements.appearanceContent.querySelector(".appearance-current-summary h3");
+  const hair = elements.appearanceContent.querySelector('[data-appearance-summary="hair"]');
+  const headwear = elements.appearanceContent.querySelector('[data-appearance-summary="headwear"]');
+
+  if (title) {
+    title.textContent = character.name;
+  }
+
+  if (hair) {
+    hair.textContent = hairItem ? hairItem.name : renderState.hair || "未装备";
+  }
+
+  if (headwear) {
+    headwear.textContent = headwearItem ? headwearItem.name : "未装备";
+  }
+}
+
+function updateAppearanceSections(characterId) {
+  const hairSection = elements.appearanceContent.querySelector('[data-appearance-section="hair"]');
+  const costumeSection = elements.appearanceContent.querySelector('[data-appearance-section="costume"]');
+  const accessoriesSection = elements.appearanceContent.querySelector('[data-appearance-section="accessories"]');
+
+  if (hairSection) {
+    hairSection.innerHTML = renderAppearanceCategory(characterId, "hair", "发型");
+  }
+
+  if (costumeSection) {
+    costumeSection.innerHTML = renderAppearanceCategory(characterId, "costume", "服装");
+  }
+
+  if (accessoriesSection) {
+    accessoriesSection.innerHTML = renderAppearanceAccessories(characterId);
+  }
+}
+
+function preloadUnequippedAppearanceAssetsOnce() {
+  if (appearanceAssetsPreloaded) {
+    return;
+  }
+
+  appearanceAssetsPreloaded = true;
+
+  const currentMode = selectedUiMode || loadUiMode() || "normal";
+  const renderState = getCharacterRenderState(selectedAppearanceCharacter, currentMode);
+  const visibleUrls = new Set(
+    [
+      getAppearanceItem(selectedAppearanceCharacter, "base", renderState.base),
+      getAppearanceItem(selectedAppearanceCharacter, "hair", renderState.hair),
+      getResolvedHeadwearItem(selectedAppearanceCharacter, currentMode),
+    ]
+      .map((item) => (item && item.image ? item.image : ""))
+      .filter(Boolean)
+  );
+  const preloadUrls = getAllAppearanceImageUrls().filter((url) => !visibleUrls.has(url));
+
+  scheduleIdleTask(() => preloadImagesOnce(preloadUrls));
+}
+
+function getAllAppearanceImageUrls() {
+  const urls = [];
+
+  APPEARANCE_CHARACTER_IDS.forEach((characterId) => {
+    ["base", "hair", "costume", "accessories"].forEach((category) => {
+      getAppearanceItems(characterId, category).forEach((item) => {
+        if (item.image) {
+          urls.push(item.image);
+        }
+      });
+    });
+  });
+
+  return Array.from(new Set(urls));
+}
+
+function preloadImagesOnce(urls) {
+  urls.forEach((url) => {
+    if (!url || preloadedImageUrls.has(url)) {
+      return;
+    }
+
+    preloadedImageUrls.add(url);
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+  });
+}
+
+function scheduleIdleTask(callback) {
+  if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+    window.requestIdleCallback(callback, { timeout: 1200 });
+    return;
+  }
+
+  window.setTimeout(callback, 0);
 }
 
 function renderAppearanceCategory(characterId, category, title) {
@@ -1587,6 +1705,8 @@ function renderShop() {
 
     const image = document.createElement("img");
     image.className = "shop-item-image";
+    image.loading = "lazy";
+    image.decoding = "async";
     image.src = item.image;
     image.alt = item.name;
 
