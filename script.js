@@ -22,7 +22,16 @@ const UI_MODES = {
 };
 
 const APPEARANCE_CHARACTER_IDS = ["arzu", "nawfal"];
-const APPEARANCE_ACCESSORY_SLOTS = ["veil", "face", "neck", "body", "hand"];
+const HEADWEAR_SLOT = "headwear";
+const APPEARANCE_ACCESSORY_SLOTS = [HEADWEAR_SLOT, "veil", "face", "neck", "body", "hand"];
+const DEFAULT_MODE_HEADWEAR = {
+  normal: "hat_01",
+  evil: "hat_02",
+};
+const APPEARANCE_ID_ALIASES = {
+  arzu_hair_short: "hair_short",
+  arzu_hair_long: "hair_long",
+};
 
 const defaultState = {
   day: 1,
@@ -142,36 +151,64 @@ const DEFAULT_APPEARANCE_DATA = {
       name: "阿尔图",
       base: [
         {
-          id: "arzu_base_normal",
-          name: "阿尔图基础立绘（通常）",
-          modes: ["normal"],
-          image: "",
-        },
-        {
-          id: "arzu_base_evil",
-          name: "阿尔图基础立绘（邪恶化身）",
-          modes: ["evil"],
-          image: "",
+          id: "arzu_base",
+          name: "阿尔图基础立绘",
+          type: "base",
+          modes: ["all"],
+          image: "assets/appearance/arzu/arzu_base.png",
+          unlocked: true,
         },
       ],
       hair: [
         {
-          id: "arzu_hair_short",
+          id: "hair_short",
           name: "短发",
+          type: "hair",
           defaultUnlocked: true,
           defaultEquipped: true,
-          image: "",
+          image: "assets/appearance/arzu/arzu_hair_short.png",
+          unlocked: true,
         },
         {
-          id: "arzu_hair_long",
+          id: "hair_long",
           name: "长发",
-          defaultUnlocked: false,
+          type: "hair",
+          defaultUnlocked: true,
           defaultEquipped: false,
-          image: "",
+          image: "assets/appearance/arzu/arzu_hair_long.png",
+          unlocked: true,
         },
       ],
       costume: [],
-      accessories: [],
+      accessories: [
+        {
+          id: "hat_01",
+          name: "默认帽子",
+          type: "headwear",
+          slot: HEADWEAR_SLOT,
+          image: "assets/appearance/arzu/hat_01.png",
+          unlocked: true,
+          defaultUnlocked: true,
+        },
+        {
+          id: "hat_02",
+          name: "邪恶模式帽子",
+          type: "headwear",
+          slot: HEADWEAR_SLOT,
+          image: "assets/appearance/arzu/hat_02.png",
+          unlocked: true,
+          defaultUnlocked: true,
+        },
+        {
+          id: "crown_01",
+          name: "头冠",
+          type: "headwear",
+          slot: HEADWEAR_SLOT,
+          image: "assets/appearance/arzu/crown_01.png",
+          unlocked: true,
+          defaultUnlocked: true,
+        },
+      ],
     },
     nawfal: {
       id: "nawfal",
@@ -972,6 +1009,7 @@ function createDefaultEquippedAppearance() {
     result[characterId] = {
       hair: defaultHair ? defaultHair.id : "",
       costume: defaultCostume ? defaultCostume.id : "",
+      headwear: null,
       accessories: createEmptyAccessorySlots(),
     };
     return result;
@@ -1002,27 +1040,47 @@ function normalizeEquippedAppearance(saved = {}, savedUnlocked = {}) {
 
   APPEARANCE_CHARACTER_IDS.forEach((characterId) => {
     const savedCharacter = saved && saved[characterId] && typeof saved[characterId] === "object" ? saved[characterId] : {};
+    const savedHair = normalizeAppearanceId(savedCharacter.hair);
+    const savedCostume = normalizeAppearanceId(savedCharacter.costume);
 
-    if (unlocked[characterId].hair.includes(savedCharacter.hair)) {
-      defaults[characterId].hair = savedCharacter.hair;
+    if (unlocked[characterId].hair.includes(savedHair)) {
+      defaults[characterId].hair = savedHair;
     }
 
-    if (unlocked[characterId].costume.includes(savedCharacter.costume)) {
-      defaults[characterId].costume = savedCharacter.costume;
+    if (unlocked[characterId].costume.includes(savedCostume)) {
+      defaults[characterId].costume = savedCostume;
     }
 
     const savedAccessories =
       savedCharacter.accessories && typeof savedCharacter.accessories === "object" ? savedCharacter.accessories : {};
+    const savedHeadwear = normalizeAppearanceId(savedCharacter.headwear);
 
     APPEARANCE_ACCESSORY_SLOTS.forEach((slot) => {
-      const appearanceId = savedAccessories[slot];
+      const appearanceId = normalizeAppearanceId(savedAccessories[slot]);
       if (appearanceId && unlocked[characterId].accessories.includes(appearanceId)) {
         defaults[characterId].accessories[slot] = appearanceId;
       }
     });
+
+    if (savedHeadwear && unlocked[characterId].accessories.includes(savedHeadwear)) {
+      defaults[characterId].accessories[HEADWEAR_SLOT] = savedHeadwear;
+      defaults[characterId].headwear = savedHeadwear;
+    } else {
+      defaults[characterId].headwear = defaults[characterId].accessories[HEADWEAR_SLOT] || null;
+    }
   });
 
   return defaults;
+}
+
+function normalizeAppearanceId(appearanceId) {
+  if (!appearanceId) {
+    return "";
+  }
+
+  const id = String(appearanceId);
+
+  return APPEARANCE_ID_ALIASES[id] || id;
 }
 
 function loadUiMode() {
@@ -1111,12 +1169,14 @@ function normalizeAppearanceItems(items = []) {
         .map((item) => ({
           id: String(item.id),
           name: item.name ? String(item.name) : String(item.id),
+          type: item.type ? String(item.type) : "",
           modes: Array.isArray(item.modes) ? item.modes.map(String) : [],
           slot: item.slot ? String(item.slot) : "",
           image: item.image ? String(item.image) : "",
           inventoryItemId: item.inventoryItemId ? String(item.inventoryItemId) : "",
           equipTargets: Array.isArray(item.equipTargets) ? item.equipTargets.filter((id) => APPEARANCE_CHARACTER_IDS.includes(id)) : [],
-          defaultUnlocked: Boolean(item.defaultUnlocked),
+          unlocked: Boolean(item.unlocked),
+          defaultUnlocked: Boolean(item.defaultUnlocked || item.unlocked),
           defaultEquipped: Boolean(item.defaultEquipped),
         }))
     : [];
@@ -1223,19 +1283,44 @@ function renderAppearance() {
 
   const character = getAppearanceCharacter(selectedAppearanceCharacter);
   const currentMode = selectedUiMode || loadUiMode() || "normal";
-  const base = getCharacterBase(selectedAppearanceCharacter, currentMode);
   const renderState = getCharacterRenderState(selectedAppearanceCharacter, currentMode);
+  const baseItem = getAppearanceItem(selectedAppearanceCharacter, "base", renderState.base);
+  const hairItem = getAppearanceItem(selectedAppearanceCharacter, "hair", renderState.hair);
+  const headwearItem = getResolvedHeadwearItem(selectedAppearanceCharacter, currentMode);
 
   elements.appearanceContent.innerHTML = `
     <section class="appearance-current">
-      <h3>${escapeHtml(character.name)}</h3>
-      <p>当前基础立绘：${escapeHtml(base || "未设置")}</p>
-      <p>当前发型：${escapeHtml(renderState.hair || "未装备")}</p>
+      <div class="appearance-preview" aria-label="${escapeHtml(character.name)} 当前装扮预览">
+        ${renderAppearanceLayer(baseItem, "基础立绘")}
+        ${renderAppearanceLayer(hairItem, "发型")}
+        ${renderAppearanceLayer(headwearItem, "头饰")}
+      </div>
+      <div class="appearance-current-summary">
+        <h3>${escapeHtml(character.name)}</h3>
+        <dl class="appearance-summary-list">
+          <div>
+            <dt>发型</dt>
+            <dd>${escapeHtml(hairItem ? hairItem.name : renderState.hair || "未装备")}</dd>
+          </div>
+          <div>
+            <dt>头饰</dt>
+            <dd>${escapeHtml(headwearItem ? headwearItem.name : "未装备")}</dd>
+          </div>
+        </dl>
+      </div>
     </section>
     ${renderAppearanceCategory(selectedAppearanceCharacter, "hair", "发型")}
     ${renderAppearanceCategory(selectedAppearanceCharacter, "costume", "服装")}
     ${renderAppearanceAccessories(selectedAppearanceCharacter)}
   `;
+}
+
+function renderAppearanceLayer(item, label) {
+  if (!item || !item.image) {
+    return "";
+  }
+
+  return `<img class="appearance-layer" src="${escapeHtml(item.image)}" alt="${escapeHtml(label)}">`;
 }
 
 function renderAppearanceCategory(characterId, category, title) {
@@ -1274,9 +1359,12 @@ function renderAppearanceAccessories(characterId) {
 
   return `
     <section class="appearance-section">
-      <h3>饰品</h3>
+      <h3>已解锁装饰</h3>
       ${APPEARANCE_ACCESSORY_SLOTS.map((slot) => {
         const slotItems = items.filter((item) => item.slot === slot);
+        if (slotItems.length === 0) {
+          return "";
+        }
         return `
           <div class="appearance-slot">
             <h4>${escapeHtml(slot)}</h4>
@@ -1292,10 +1380,12 @@ function renderAppearanceAccessories(characterId) {
 }
 
 function renderUnequipAccessoryChoice(characterId, slot) {
-  const current = getEquippedAppearance(characterId).accessories[slot];
+  const equipped = getEquippedAppearance(characterId);
+  const current = slot === HEADWEAR_SLOT ? equipped.headwear : equipped.accessories[slot];
   const active = current ? "" : " is-equipped";
+  const label = slot === HEADWEAR_SLOT ? "使用模式默认" : "不装备";
 
-  return `<button class="appearance-choice${active}" type="button" data-appearance-category="accessories" data-appearance-choice="" data-appearance-slot="${slot}">不装备</button>`;
+  return `<button class="appearance-choice${active}" type="button" data-appearance-category="accessories" data-appearance-choice="" data-appearance-slot="${slot}">${label}</button>`;
 }
 
 function renderAppearanceChoice(characterId, category, item) {
@@ -1356,7 +1446,7 @@ function isAppearanceEquipped(characterId, category, item) {
   const equipped = getEquippedAppearance(characterId);
 
   if (category === "accessories") {
-    return item.slot && equipped.accessories[item.slot] === item.id;
+    return item.slot === HEADWEAR_SLOT ? equipped.headwear === item.id : item.slot && equipped.accessories[item.slot] === item.id;
   }
 
   return equipped[category] === item.id;
@@ -1389,6 +1479,9 @@ function equipAppearance(characterId, category, appearanceId, options = {}) {
     const slot = options.slot || "";
     if (slot && gameState.equippedAppearance[characterId].accessories[slot] !== undefined) {
       gameState.equippedAppearance[characterId].accessories[slot] = "";
+      if (slot === HEADWEAR_SLOT) {
+        gameState.equippedAppearance[characterId].headwear = null;
+      }
       saveGame();
       renderAppearance();
       return true;
@@ -1413,6 +1506,9 @@ function equipAppearance(characterId, category, appearanceId, options = {}) {
     }
 
     gameState.equippedAppearance[characterId].accessories[item.slot] = item.id;
+    if (item.slot === HEADWEAR_SLOT) {
+      gameState.equippedAppearance[characterId].headwear = item.id;
+    }
   } else if (category === "hair" || category === "costume") {
     gameState.equippedAppearance[characterId][category] = item.id;
   } else {
@@ -1432,11 +1528,14 @@ function findAppearanceCategory(characterId, appearanceId) {
 
 function getEquippedAppearance(characterId) {
   const equipped = gameState.equippedAppearance && gameState.equippedAppearance[characterId];
+  const accessories = Object.assign(createEmptyAccessorySlots(), equipped && equipped.accessories ? equipped.accessories : {});
+  const headwear = equipped && Object.prototype.hasOwnProperty.call(equipped, "headwear") ? equipped.headwear : accessories[HEADWEAR_SLOT];
 
   return {
     hair: equipped && equipped.hair ? equipped.hair : "",
     costume: equipped && equipped.costume ? equipped.costume : "",
-    accessories: Object.assign(createEmptyAccessorySlots(), equipped && equipped.accessories ? equipped.accessories : {}),
+    headwear: headwear || null,
+    accessories,
   };
 }
 
@@ -1450,6 +1549,7 @@ function getCharacterBase(characterId, mode) {
 
 function getCharacterRenderState(characterId, mode) {
   const equipped = getEquippedAppearance(characterId);
+  const headwear = getResolvedHeadwearItem(characterId, mode);
 
   return {
     characterId,
@@ -1457,8 +1557,17 @@ function getCharacterRenderState(characterId, mode) {
     base: getCharacterBase(characterId, mode),
     hair: equipped.hair,
     costume: equipped.costume,
+    headwear: headwear ? headwear.id : null,
     accessories: equipped.accessories,
   };
+}
+
+function getResolvedHeadwearItem(characterId, mode) {
+  const equipped = getEquippedAppearance(characterId);
+  const currentMode = UI_MODES[mode] ? mode : "normal";
+  const headwearId = equipped.headwear || DEFAULT_MODE_HEADWEAR[currentMode];
+
+  return getAppearanceItem(characterId, "accessories", headwearId);
 }
 
 function renderShop() {

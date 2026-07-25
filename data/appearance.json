@@ -5,36 +5,64 @@
       "name": "阿尔图",
       "base": [
         {
-          "id": "arzu_base_normal",
-          "name": "阿尔图基础立绘（通常）",
-          "modes": ["normal"],
-          "image": ""
-        },
-        {
-          "id": "arzu_base_evil",
-          "name": "阿尔图基础立绘（邪恶化身）",
-          "modes": ["evil"],
-          "image": ""
+          "id": "arzu_base",
+          "name": "阿尔图基础立绘",
+          "type": "base",
+          "modes": ["all"],
+          "image": "assets/appearance/arzu/arzu_base.png",
+          "unlocked": true
         }
       ],
       "hair": [
         {
-          "id": "arzu_hair_short",
+          "id": "hair_short",
           "name": "短发",
+          "type": "hair",
           "defaultUnlocked": true,
           "defaultEquipped": true,
-          "image": ""
+          "image": "assets/appearance/arzu/arzu_hair_short.png",
+          "unlocked": true
         },
         {
-          "id": "arzu_hair_long",
+          "id": "hair_long",
           "name": "长发",
-          "defaultUnlocked": false,
+          "type": "hair",
+          "defaultUnlocked": true,
           "defaultEquipped": false,
-          "image": ""
+          "image": "assets/appearance/arzu/arzu_hair_long.png",
+          "unlocked": true
         }
       ],
       "costume": [],
-      "accessories": []
+      "accessories": [
+        {
+          "id": "hat_01",
+          "name": "默认帽子",
+          "type": "headwear",
+          "slot": "headwear",
+          "image": "assets/appearance/arzu/hat_01.png",
+          "unlocked": true,
+          "defaultUnlocked": true
+        },
+        {
+          "id": "hat_02",
+          "name": "邪恶模式帽子",
+          "type": "headwear",
+          "slot": "headwear",
+          "image": "assets/appearance/arzu/hat_02.png",
+          "unlocked": true,
+          "defaultUnlocked": true
+        },
+        {
+          "id": "crown_01",
+          "name": "头冠",
+          "type": "headwear",
+          "slot": "headwear",
+          "image": "assets/appearance/arzu/crown_01.png",
+          "unlocked": true,
+          "defaultUnlocked": true
+        }
+      ]
     },
     "nawfal": {
       "id": "nawfal",
@@ -67,5 +95,5 @@
       "accessories": []
     }
   },
-  "accessorySlots": ["veil", "face", "neck", "body", "hand"]
+  "accessorySlots": ["headwear", "veil", "face", "neck", "body", "hand"]
 }
